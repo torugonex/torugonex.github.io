@@ -411,17 +411,22 @@ function openQuiz(s){
     state.results.push({ seg: state.seg, word: s.word, pick, ok });
     document.getElementById('after').innerHTML = `
       <div class="verdict ${ok?'ok':'ng'}">${ok ? '正解です！' : `残念！正解は「${esc(s.word)}」でした`}</div>
-      <button type="button" class="btn primary" id="cont" style="width:100%;margin-top:10px">続ける</button>`;
+      <div class="actions" style="margin-top:10px">
+        <button type="button" class="btn" id="quit">ここで終える</button>
+        <button type="button" class="btn primary" id="cont">続ける</button>
+      </div>`;
     const c = document.getElementById('cont'); c.focus();
     c.onclick = () => { m.innerHTML = ''; state.quizOpen = false; nextSegment(); };
+    document.getElementById('quit').onclick = () => { m.innerHTML = ''; state.quizOpen = false; showResults(true); };
   });
 }
 
 /* ---------- 結果 ---------- */
-function showResults(){
+function showResults(early){
   stopSpeech();
   state.view = 'result';
   const p = state.p, n = state.results.length, ok = state.results.filter(r => r.ok).length;
+  const total = p.segments.filter(s => s.word).length;
   const pct = n ? Math.round(ok / n * 100) : 0;
   const best = store('hag-best') || {};
   if(best[p.id] == null || ok > best[p.id]){ best[p.id] = ok; store('hag-best', best); }
@@ -431,7 +436,7 @@ function showResults(){
     .map(w => quizWords.has(clean(w)) ? `<mark>${esc(w)}</mark>` : esc(w)).join(' ');
   app.innerHTML = `
     <section class="card score">
-      <h2>リスニング完了</h2>
+      <h2>${early && n < total ? `途中で終了（${total}問中${n}問）` : 'リスニング完了'}</h2>
       <div class="big">${ok} / ${n}</div>
       <p style="margin:0;font-weight:500">${msg}</p>
       <div class="bar" role="img" aria-label="正答率 ${pct}%"><i style="width:${pct}%"></i></div>
