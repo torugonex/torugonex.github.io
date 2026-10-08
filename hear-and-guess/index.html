@@ -146,6 +146,7 @@ const prefs = store('hag-prefs') || {};
 let filter = prefs.filter || 'all';
 let rate = prefs.rate || 0.9;
 let voices = [], voice = null;
+const state = { view:'list', p:null, seg:0, wordIdx:-1, results:[], playing:false, paused:false, quizOpen:false };
 
 /* ---------- 音声 ---------- */
 function loadVoices(){
@@ -172,7 +173,6 @@ if(hasSpeech){
 function savePrefs(){ store('hag-prefs', {filter, rate, voice: voice && voice.name}); }
 
 /* ---------- 状態 ---------- */
-const state = { view:'list', p:null, seg:0, wordIdx:-1, results:[], playing:false, paused:false, quizOpen:false };
 let timers = [], speakId = 0;
 function clearTimers(){ timers.forEach(t => { clearTimeout(t); clearInterval(t); }); timers = []; }
 function stopSpeech(){ speakId++; clearTimers(); if(hasSpeech) speechSynthesis.cancel(); state.playing = false; state.paused = false; }
