@@ -1,0 +1,461 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body>
+<title>hear-and-guess</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+/* Lovable版の構成を踏襲：一覧 → 再生画面（本文カード＋プレーヤー）→ 四択 → 結果と全文訳 */
+:root{
+  --bg:#f3f5f8; --card:#ffffff; --ink:#0f172a; --muted:#64748b; --line:#e2e8f0;
+  --primary:#1e293b; --on-primary:#f8fafc; --soft:#eef2f7;
+  --good:#047857; --good-bg:#d1fae5; --bad:#be123c; --bad-bg:#ffe4e6;
+  --beg:#047857; --beg-bg:#d1fae5; --mid:#b45309; --mid-bg:#fef3c7; --adv:#be123c; --adv-bg:#ffe4e6;
+  --blank:#e0e7ff; --blank-ink:#3730a3;
+  --sans:"Noto Sans JP","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --serif:"Source Serif 4",Georgia,"Times New Roman",serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0b1120; --card:#131b2e; --ink:#e2e8f0; --muted:#94a3b8; --line:#243049;
+    --primary:#e2e8f0; --on-primary:#0f172a; --soft:#1a2439;
+    --good:#6ee7b7; --good-bg:#063b2c; --bad:#fda4af; --bad-bg:#45101f;
+    --beg:#6ee7b7; --beg-bg:#063b2c; --mid:#fcd34d; --mid-bg:#3d2a06; --adv:#fda4af; --adv-bg:#45101f;
+    --blank:#1e2a5a; --blank-ink:#c7d2fe; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0b1120; --card:#131b2e; --ink:#e2e8f0; --muted:#94a3b8; --line:#243049;
+  --primary:#e2e8f0; --on-primary:#0f172a; --soft:#1a2439;
+  --good:#6ee7b7; --good-bg:#063b2c; --bad:#fda4af; --bad-bg:#45101f;
+  --beg:#6ee7b7; --beg-bg:#063b2c; --mid:#fcd34d; --mid-bg:#3d2a06; --adv:#fda4af; --adv-bg:#45101f;
+  --blank:#1e2a5a; --blank-ink:#c7d2fe; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.7;padding:0 16px}
+.wrap{max-width:680px;margin:0 auto;padding-block:32px 64px;display:grid;gap:20px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,select:focus-visible,input:focus-visible,.pcard:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px}
+.muted{color:var(--muted)}
+.btn{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:9px 16px;font-weight:500}
+.btn:hover{background:var(--soft)}
+.btn.primary{background:var(--primary);color:var(--on-primary);border-color:var(--primary)}
+.btn.primary:hover{opacity:.9}
+.btn:disabled{opacity:.45;cursor:default}
+
+/* 一覧 */
+.top{text-align:center;display:grid;gap:4px}
+.top h1{margin:0;font-family:var(--serif);font-weight:600;font-size:clamp(28px,6vw,36px);letter-spacing:-.01em}
+.top p{margin:0}
+.filters{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.filters button{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:5px 14px;font-size:14px}
+.filters button[aria-pressed="true"]{background:var(--primary);color:var(--on-primary);border-color:var(--primary)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.pcard{text-align:left;display:grid;gap:6px;align-content:start;transition:border-color .15s,box-shadow .15s}
+.pcard:hover{border-color:var(--muted);box-shadow:0 4px 16px -8px rgba(15,23,42,.25)}
+.pcard .row{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.pcard h3{margin:0;font-family:var(--serif);font-weight:600;font-size:18px;line-height:1.3}
+.pcard .meta{font-size:13px;color:var(--muted)}
+.pcard .meta b{color:var(--good);font-weight:500}
+.badge{font-size:12px;font-weight:500;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.badge.beginner{color:var(--beg);background:var(--beg-bg)}
+.badge.intermediate{color:var(--mid);background:var(--mid-bg)}
+.badge.advanced{color:var(--adv);background:var(--adv-bg)}
+
+/* 再生画面 */
+.head{display:flex;align-items:center;gap:12px}
+.icon-btn{width:40px;height:40px;border-radius:8px;border:1px solid transparent;background:transparent;display:grid;place-items:center;flex:none}
+.icon-btn:hover{background:var(--soft)}
+.head h2{margin:0;font-family:var(--serif);font-weight:600;font-size:20px;line-height:1.3}
+.head p{margin:0;font-size:13px}
+.text-card .row{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}
+.text-card .row span{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:1px 9px;color:var(--muted);white-space:nowrap}
+.passage{font-family:var(--serif);font-size:19px;line-height:1.85;min-height:120px}
+.passage .w{display:inline;animation:in .25s ease-out}
+.passage .blank{display:inline-block;min-width:3.2em;padding:0 6px;margin:0 1px;border-radius:5px;background:var(--blank);color:var(--blank-ink);border:1px solid color-mix(in srgb,var(--blank-ink) 30%,transparent);text-align:center;font-family:var(--sans);font-size:15px;line-height:1.6}
+.passage .got{background:var(--good-bg);color:var(--good);border-radius:4px;padding:0 3px;font-weight:600}
+.passage .miss{background:var(--bad-bg);color:var(--bad);border-radius:4px;padding:0 3px;font-weight:600}
+.passage .hint{font-family:var(--sans);font-size:14px;color:var(--muted);text-align:center;margin:36px 0 0}
+@keyframes in{from{opacity:0}to{opacity:1}}
+.player{display:grid;gap:16px}
+.controls{display:flex;justify-content:center;align-items:center;gap:14px}
+.controls .icon-btn{border-color:var(--line);background:var(--card)}
+.play{width:58px;height:58px;border-radius:50%;border:0;background:var(--primary);color:var(--on-primary);display:grid;place-items:center}
+.play:disabled,.controls .icon-btn:disabled{opacity:.45;cursor:default}
+.field{display:grid;gap:6px;font-size:14px}
+.field .lab{display:flex;justify-content:space-between;color:var(--muted)}
+.field .lab b{color:var(--ink);font-weight:500;font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--primary)}
+select{width:100%;font:inherit;font-size:14px;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.note{font-size:12px;color:var(--muted);margin:0}
+.warn{font-size:13px;color:var(--bad);margin:0}
+
+/* 四択 */
+.overlay{position:fixed;inset:0;background:rgba(2,6,23,.55);display:grid;place-items:center;padding:16px;z-index:20}
+.dialog{width:100%;max-width:440px;display:grid;gap:14px;max-height:calc(100vh - 32px);overflow:auto}
+.dialog h3{margin:0;font-size:19px;display:flex;align-items:center;gap:8px}
+.dialog p{margin:0}
+.opts{display:grid;gap:8px}
+.opt{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:13px 16px;font-family:var(--serif);font-size:19px;text-align:left}
+.opt:hover:not(:disabled){background:var(--soft);border-color:var(--muted)}
+.opt:disabled{cursor:default}
+.opt.ok{background:var(--good-bg);border-color:var(--good)}
+.opt.ng{background:var(--bad-bg);border-color:var(--bad)}
+.opt .mk{font-family:var(--sans);font-size:15px;font-weight:700}
+.opt.ok .mk{color:var(--good)} .opt.ng .mk{color:var(--bad)}
+.verdict{text-align:center;padding:10px;border-radius:8px;font-weight:500}
+.verdict.ok{background:var(--good-bg);color:var(--good)}
+.verdict.ng{background:var(--bad-bg);color:var(--bad)}
+
+/* 結果 */
+.score{text-align:center;display:grid;gap:10px}
+.score h2{margin:0;font-size:22px}
+.score .big{font-family:var(--serif);font-size:52px;font-weight:600;line-height:1.1;font-variant-numeric:tabular-nums}
+.bar{height:10px;background:var(--soft);border-radius:999px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--primary);border-radius:999px}
+.detail{display:grid;gap:4px;text-align:left}
+.detail div{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--soft);border-radius:6px;padding:6px 10px;font-size:14px}
+.detail .ans{color:var(--muted);font-size:13px}
+.detail .o{color:var(--good);font-weight:700} .detail .x{color:var(--bad);font-weight:700}
+.full h3{margin:0 0 12px;font-size:17px}
+.full h4{margin:0 0 6px;font-size:13px;font-weight:500;color:var(--muted)}
+.full .en{font-family:var(--serif);font-size:17px;line-height:1.8;background:var(--soft);border-radius:8px;padding:12px 14px;margin:0 0 16px}
+.full .en mark{background:var(--blank);color:var(--blank-ink);border-radius:3px;padding:0 2px}
+.full .ja{line-height:1.9;background:var(--soft);border-radius:8px;padding:12px 14px;margin:0}
+.actions{display:flex;gap:10px}
+.actions .btn{flex:1}
+@media (prefers-reduced-motion: reduce){ .passage .w{animation:none} .pcard{transition:none} }
+</style>
+
+<div class="wrap" id="app"></div>
+
+<script>
+const PASSAGES = [{"id":"1","title":"A Day at the Beach","difficulty":"beginner","segments":[{"text":"The sun was shining brightly over the calm ocean. Sarah walked along the sandy shore, feeling the warm waves touch her feet.","word":"brightly","options":["briefly","rightly","slightly"]},{"text":"She collected beautiful seashells and watched the seagulls fly overhead. It was a perfect summer afternoon.","word":"seashells","options":["seashores","she sells","seals"]},{"text":"The children were building sandcastles nearby. Their laughter filled the air with joy.","word":"laughter","options":["lighter","letter","latter"]},{"text":"Sarah decided to take a swim in the cool water. She felt refreshed and happy.","word":"refreshed","options":["refused","reflected","released"]},{"text":"As the sun began to set, the sky turned orange and pink. It was truly a magical day at the beach."}],"ja":"太陽が穏やかな海の上で明るく輝いていました。サラは砂浜に沿って歩き、温かい波が足に触れるのを感じました。彼女は美しい貝殻を集め、カモメが頭上を飛ぶのを見ました。それは完璧な夏の午後でした。子供たちは近くで砂の城を作っていました。彼らの笑い声が空気を喜びで満たしました。サラは冷たい水で泳ぐことにしました。彼女はリフレッシュして幸せを感じました。太陽が沈み始めると、空はオレンジとピンクに変わりました。それは本当にビーチでの魔法のような一日でした。"},{"id":"2","title":"The Morning Routine","difficulty":"beginner","segments":[{"text":"Every morning, Tom wakes up at seven o'clock. He stretches his arms and yawns before getting out of bed.","word":"stretches","options":["scratches","sketches","snatches"]},{"text":"After brushing his teeth and taking a quick shower, he feels ready for the day. He prepares a healthy breakfast in the kitchen.","word":"healthy","options":["wealthy","stealthy","filthy"]},{"text":"He usually eats toast with eggs and drinks orange juice. Then he checks his phone for any important messages.","word":"important","options":["impatient","imported","immigrant"]},{"text":"Before leaving, he makes sure to pack his bag carefully. He walks to the bus stop and waits patiently.","word":"patiently","options":["partially","patently","presently"]},{"text":"The bus arrives exactly on time. Tom enjoys watching the city wake up during his commute."}],"ja":"毎朝、トムは7時に起きます。ベッドから出る前に腕を伸ばしてあくびをします。歯を磨いてシャワーを浴びた後、一日を始める準備ができます。彼は台所で健康的な朝食を準備します。彼は通常、卵と一緒にトーストを食べ、オレンジジュースを飲みます。それから彼は重要なメッセージがないか携帯電話をチェックします。出かける前に、彼は注意深くかばんを詰めます。彼はバス停まで歩いて、辛抱強く待ちます。バスは時間通りに到着します。トムは通勤中に街が目覚めるのを見るのを楽しみます。"},{"id":"3","title":"Climate Change Effects","difficulty":"advanced","segments":[{"text":"Climate change is significantly altering ecosystems worldwide. Rising temperatures are causing glaciers to melt at unprecedented rates.","word":"unprecedented","options":["unrepresented","unpresented","unpredicted"]},{"text":"This leads to increased sea levels that threaten coastal communities. Many species face extinction as their habitats transform rapidly.","word":"extinction","options":["extension","distinction","extraction"]},{"text":"Scientists emphasize the urgent need for sustainable practices. Governments are implementing new policies to reduce carbon emissions.","word":"sustainable","options":["substantial","suitable","susceptible"]},{"text":"Renewable energy sources like solar and wind power are becoming more popular. Individuals can also contribute by making environmentally conscious choices.","word":"conscious","options":["cautious","consensus","conscience"]},{"text":"The challenge requires cooperation from all nations. Together, we can mitigate these devastating consequences."}],"ja":"気候変動は世界中の生態系を著しく変化させています。気温の上昇により、氷河が前例のない速度で溶けています。これにより海面が上昇し、沿岸のコミュニティが脅かされています。多くの種が生息地の急速な変化により絶滅の危機に瀕しています。科学者たちは持続可能な実践の緊急の必要性を強調しています。政府は炭素排出量を削減するための新しい政策を実施しています。太陽光や風力などの再生可能エネルギー源がより人気になっています。個人も環境に配慮した選択をすることで貢献できます。この課題にはすべての国からの協力が必要です。一緒に、これらの壊滅的な結果を軽減することができます。"},{"id":"4","title":"The Art of Cooking","difficulty":"intermediate","segments":[{"text":"Cooking is both an art and a science. A skilled chef combines fresh ingredients with precise techniques.","word":"precise","options":["preside","prestige","precious"]},{"text":"Temperature control and timing are crucial for achieving perfect results. Experimenting with different flavors can lead to extraordinary discoveries.","word":"extraordinary","options":["extravagant","extraneous","extracurricular"]},{"text":"Many famous dishes were created by accident in the kitchen. Learning to cook takes patience and practice over time.","word":"patience","options":["patent","potions","passions"]},{"text":"The best meals are often prepared with love and care. Sharing food with family and friends creates lasting memories.","word":"memories","options":["memoirs","melodies","mysteries"]},{"text":"Different cultures have unique culinary traditions worth exploring. Cooking at home is also healthier and more economical than eating out."}],"ja":"料理は芸術であり科学でもあります。熟練したシェフは新鮮な材料と正確な技術を組み合わせます。温度管理とタイミングは完璧な結果を得るために重要です。様々な風味を試すことで、並外れた発見につながることがあります。多くの有名な料理は、キッチンでの偶然から生まれました。料理を学ぶには時間をかけて忍耐と練習が必要です。最高の食事はしばしば愛情を込めて準備されます。家族や友人と食事を共有することは、永続的な思い出を作ります。異なる文化には探求する価値のあるユニークな料理の伝統があります。自宅で料理することは、外食よりも健康的で経済的です。"},{"id":"5","title":"Space Exploration","difficulty":"intermediate","segments":[{"text":"Humanity has always been fascinated by the stars above. The first successful moon landing occurred in nineteen sixty-nine.","word":"fascinated","options":["frustrated","fabricated","facilitated"]},{"text":"Since then, we have sent numerous probes to explore distant planets. Mars has become a primary target for future human colonization.","word":"colonization","options":["civilization","organization","realization"]},{"text":"Scientists are developing advanced technologies for long-duration space travel. The International Space Station serves as a laboratory in orbit.","word":"laboratory","options":["lavatory","library","lottery"]},{"text":"Astronauts conduct important experiments in microgravity conditions. Private companies are now competing to make space tourism possible.","word":"experiments","options":["experience","expensive","expedience"]},{"text":"The discovery of water on other celestial bodies excites researchers. Space exploration continues to push the boundaries of human knowledge."}],"ja":"人類は常に頭上の星々に魅了されてきました。最初の月面着陸成功は1969年に起こりました。それ以来、私たちは遠い惑星を探査するために多くの探査機を送ってきました。火星は将来の人類の植民地化の主要なターゲットになっています。科学者たちは長期間の宇宙旅行のための先進技術を開発しています。国際宇宙ステーションは軌道上の研究所として機能しています。宇宙飛行士は微小重力条件で重要な実験を行っています。民間企業は現在、宇宙観光を可能にするために競争しています。他の天体での水の発見は研究者を興奮させています。宇宙探査は人類の知識の境界を押し広げ続けています。"},{"id":"6","title":"Digital Technology","difficulty":"intermediate","segments":[{"text":"Technology has transformed how we communicate with each other. Smartphones have become essential tools in our daily lives.","word":"essential","options":["existential","eventual","especial"]},{"text":"Social media platforms connect millions of people around the world. However, excessive screen time can negatively affect our mental health.","word":"excessive","options":["expensive","exclusive","expressive"]},{"text":"Cybersecurity threats are increasing as more data moves online. Companies invest heavily in protecting sensitive customer information.","word":"sensitive","options":["sensible","sentence","sentiment"]},{"text":"Artificial intelligence is revolutionizing many different industries today. Self-driving cars may soon become a common sight on roads.","word":"revolutionizing","options":["recognizing","reorganizing","rationalizing"]},{"text":"The digital divide remains a challenge for developing countries. Balancing innovation with privacy concerns is increasingly important."}],"ja":"テクノロジーは私たちのコミュニケーション方法を変革しました。スマートフォンは私たちの日常生活に欠かせないツールになっています。ソーシャルメディアプラットフォームは世界中の何百万人もの人々をつなげています。しかし、過度なスクリーン時間は精神的健康に悪影響を与える可能性があります。より多くのデータがオンラインに移行するにつれ、サイバーセキュリティの脅威が増加しています。企業は機密性の高い顧客情報を保護するために多額の投資をしています。人工知能は今日、多くの異なる産業を革命的に変えています。自動運転車はすぐに道路で一般的な光景になるかもしれません。デジタルデバイドは発展途上国にとって依然として課題です。イノベーションとプライバシーの懸念のバランスを取ることがますます重要になっています。"},{"id":"7","title":"Healthy Living","difficulty":"beginner","segments":[{"text":"A healthy lifestyle requires regular exercise and proper nutrition. Walking for thirty minutes daily can significantly improve your health.","word":"nutrition","options":["nation","notion","neutron"]},{"text":"Eating plenty of fruits and vegetables provides essential vitamins. Drinking enough water throughout the day keeps your body hydrated.","word":"throughout","options":["thought","through","thorough"]},{"text":"Getting sufficient sleep is equally important for your wellbeing. Stress management techniques like meditation help maintain mental balance.","word":"meditation","options":["medication","mediation","moderation"]},{"text":"Regular medical checkups can detect problems early before they worsen. Avoiding processed foods reduces the risk of many chronic diseases.","word":"chronic","options":["chronicle","ironic","organic"]},{"text":"Building healthy habits takes time but the benefits are worth it. Small changes in daily routines can lead to big improvements over time."}],"ja":"健康的なライフスタイルには定期的な運動と適切な栄養が必要です。毎日30分歩くことで健康を大幅に改善できます。果物や野菜をたくさん食べることで必須ビタミンが得られます。一日を通して十分な水を飲むことで体の水分が保たれます。十分な睡眠を取ることも同様に健康にとって重要です。瞑想のようなストレス管理技術は精神的バランスを維持するのに役立ちます。定期的な健康診断は問題が悪化する前に早期発見できます。加工食品を避けることで多くの慢性疾患のリスクが減ります。健康的な習慣を身につけるには時間がかかりますが、その恩恵は価値があります。日常の習慣の小さな変化が、時間の経過とともに大きな改善につながります。"},{"id":"8","title":"World Travel","difficulty":"intermediate","segments":[{"text":"Traveling to new places broadens your perspective on life. Experiencing different cultures teaches valuable lessons about humanity.","word":"perspective","options":["prospective","respective","protective"]},{"text":"Learning a few phrases in the local language shows respect. Trying traditional foods is one of the best ways to understand a culture.","word":"traditional","options":["transitional","rational","additional"]},{"text":"Historical landmarks tell stories of the past that shaped our present. Meeting local people provides authentic insights into their way of life.","word":"authentic","options":["automatic","athletic","aesthetic"]},{"text":"Planning ahead ensures a smoother and more enjoyable journey. Unexpected adventures often become the most memorable experiences.","word":"memorable","options":["miserable","measurable","moveable"]},{"text":"Photography helps preserve precious moments from your travels. Sustainable tourism practices help protect destinations for future generations."}],"ja":"新しい場所への旅行は人生への視野を広げます。異なる文化を体験することは人類について貴重な教訓を教えてくれます。現地の言語でいくつかのフレーズを学ぶことは敬意を示します。伝統的な食べ物を試すことは文化を理解する最良の方法の一つです。歴史的建造物は現在を形作った過去の物語を語ります。地元の人々との出会いは彼らの生活様式への本物の洞察を提供します。事前に計画することでよりスムーズで楽しい旅行が確保されます。予期しない冒険がしばしば最も記憶に残る経験になります。写真撮影は旅行からの貴重な瞬間を保存するのに役立ちます。持続可能な観光の実践は将来の世代のために目的地を保護するのに役立ちます。"},{"id":"9","title":"Ocean Conservation","difficulty":"advanced","segments":[{"text":"The world's oceans are facing unprecedented environmental challenges today. Plastic pollution has reached alarming levels in every major waterway.","word":"environmental","options":["experimental","fundamental","governmental"]},{"text":"Marine animals frequently mistake plastic debris for food sources. Overfishing threatens the delicate balance of ocean ecosystems worldwide.","word":"delicate","options":["dedicate","delegate","deliberate"]},{"text":"Coral reefs are bleaching due to rising water temperatures globally. Scientists warn that immediate action is necessary to prevent catastrophe.","word":"catastrophe","options":["category","atmosphere","apostrophe"]},{"text":"Marine protected areas help species recover from human exploitation. Reducing single-use plastics is something everyone can do to help.","word":"exploitation","options":["exploration","explanation","expectation"]},{"text":"Ocean acidification affects shellfish and other calcium-based organisms severely. International cooperation is essential for effective ocean conservation efforts."}],"ja":"世界の海は今日、前例のない環境課題に直面しています。プラスチック汚染はすべての主要な水路で警戒レベルに達しています。海洋動物は頻繁にプラスチックのゴミを食料と間違えます。乱獲は世界中の海洋生態系の繊細なバランスを脅かしています。サンゴ礁は世界的に上昇する水温のために白化しています。科学者たちは大惨事を防ぐために即座の行動が必要だと警告しています。海洋保護区は種が人間の搾取から回復するのを助けます。使い捨てプラスチックを減らすことは誰もができることです。海洋酸性化は貝類やその他のカルシウムベースの生物に深刻な影響を与えます。効果的な海洋保全努力には国際協力が不可欠です。"},{"id":"10","title":"Music and Emotions","difficulty":"beginner","segments":[{"text":"Music has the power to change our mood instantly. A sad song can bring tears to your eyes within seconds.","word":"instantly","options":["constantly","insistently","instance"]},{"text":"Upbeat rhythms make people want to dance and move. Classical music is often used to help students concentrate better.","word":"concentrate","options":["consecrate","considerate","contemplate"]},{"text":"Learning to play an instrument develops patience and discipline. Live concerts create unforgettable experiences shared with thousands.","word":"unforgettable","options":["uncomfortable","unforgivable","unforeseeable"]},{"text":"Different genres appeal to different personalities and age groups. Musicians spend years perfecting their craft and unique style.","word":"perfecting","options":["protecting","projecting","predicting"]},{"text":"Songs often trigger powerful memories from our past experiences. Music therapy is now recognized as an effective treatment method."}],"ja":"音楽は私たちの気分を瞬時に変える力を持っています。悲しい歌は数秒で涙を誘います。アップビートなリズムは人々を踊りたい気持ちにさせます。クラシック音楽はしばしば学生の集中力を高めるために使用されます。楽器を演奏することを学ぶと忍耐力と規律が養われます。ライブコンサートは何千人もの人と共有する忘れられない体験を生み出します。異なるジャンルは異なる性格や年齢層にアピールします。ミュージシャンは何年もかけて技術とユニークなスタイルを完成させます。歌はしばしば過去の経験からの強力な記憶を呼び起こします。音楽療法は現在、効果的な治療法として認められています。"},{"id":"11","title":"The Neighborhood Library","difficulty":"beginner","segments":[{"text":"There is a small library near my house. I go there every Saturday morning with my younger brother.","word":"library","options":["liberty","literary","lottery"]},{"text":"The librarian is a kind woman who always smiles at us. She helps us find interesting books.","word":"interesting","options":["interested","entertaining","interfering"]},{"text":"My brother likes picture books about animals. I prefer stories about brave explorers.","word":"explorers","options":["explosions","exporters","employers"]},{"text":"We usually read quietly at a table by the window. Sometimes we borrow five or six books at once.","word":"borrow","options":["burrow","bother","follow"]},{"text":"On the way home, we talk about the books we chose. It is my favorite part of the week."}],"ja":"私の家の近くに小さな図書館があります。毎週土曜日の朝、弟と一緒にそこへ行きます。司書は親切な女性で、いつも私たちに笑いかけてくれます。面白い本を探すのを手伝ってくれます。弟は動物の絵本が好きです。私は勇敢な探検家の物語のほうが好きです。私たちはたいてい窓際のテーブルで静かに本を読みます。ときには一度に五、六冊の本を借ります。帰り道、選んだ本について話します。それが一週間でいちばん好きな時間です。"},{"id":"12","title":"A Rainy Sunday","difficulty":"beginner","segments":[{"text":"It rained all day last Sunday, so our family stayed inside. The sound of the rain on the roof was very relaxing.","word":"relaxing","options":["relating","reflecting","releasing"]},{"text":"My father made pancakes for breakfast, and my mother brewed a pot of tea. The whole kitchen smelled sweet.","word":"brewed","options":["brushed","bruised","breathed"]},{"text":"After breakfast, we played a board game at the dining table. My sister won three games in a row.","word":"dining","options":["diving","dying","shining"]},{"text":"In the afternoon, I wrote a letter to my friend in Osaka. I told her about my new school and my teachers.","word":"letter","options":["ladder","litter","lather"]},{"text":"By evening, the rain had stopped and the sky was clear. We were tired, but it had been a cozy day."}],"ja":"先週の日曜日は一日中雨だったので、家族みんなで家の中で過ごしました。屋根に当たる雨の音は、とても心地よいものでした。父は朝食にパンケーキを作り、母はポットで紅茶をいれました。台所中が甘い香りでいっぱいになりました。朝食の後、ダイニングテーブルでボードゲームをしました。妹は三回続けて勝ちました。午後、私は大阪にいる友だちに手紙を書きました。新しい学校と先生たちのことを伝えました。夕方には雨がやみ、空は晴れわたっていました。みんな疲れましたが、くつろいだ一日でした。"},{"id":"13","title":"My Grandmother's Garden","difficulty":"beginner","segments":[{"text":"My grandmother lives in the countryside and has a large vegetable garden. Every summer, I visit her for two weeks.","word":"vegetable","options":["vegetarian","valuable","variable"]},{"text":"In the morning, we water the plants before it gets too hot. She grows tomatoes, cucumbers, and eggplants.","word":"water","options":["waiter","wander","wonder"]},{"text":"Her tomatoes are red, round, and very juicy. We eat them fresh with a little salt.","word":"juicy","options":["juice","choosy","dusty"]},{"text":"Grandmother also keeps a few chickens behind the house. Collecting their eggs is my favorite job.","word":"chickens","options":["kitchens","checkers","children"]},{"text":"When summer ends, I always feel sad to leave. I hope I can have a garden like hers someday."}],"ja":"祖母は田舎に住んでいて、大きな野菜畑を持っています。毎年夏になると、私は二週間祖母のところを訪ねます。朝は、暑くなりすぎる前に植物に水をやります。祖母はトマト、キュウリ、ナスを育てています。祖母のトマトは赤くて丸く、とてもみずみずしいです。私たちはそれを少し塩をふって、とれたてのまま食べます。祖母は家の裏で数羽のニワトリも飼っています。卵を集めるのが、私のいちばん好きな仕事です。夏が終わると、帰るのがいつもさびしくなります。いつか祖母のような畑を持てたらいいなと思います。"},{"id":"14","title":"Riding the Train","difficulty":"beginner","segments":[{"text":"Every weekday, Ken takes the train to his office in the city. The ride takes about forty minutes.","word":"forty","options":["fourteen","thirty","fifty"]},{"text":"He usually gets a seat because he boards at the first station. He likes to sit next to the window.","word":"boards","options":["bores","birds","boasts"]},{"text":"On the way, he can see rice fields, small rivers, and distant mountains. In spring, the cherry trees along the tracks are beautiful.","word":"distant","options":["distinct","instant","decent"]},{"text":"Ken often reads a novel or listens to music with his headphones. Sometimes he simply closes his eyes and rests.","word":"novel","options":["noble","navel","normal"]},{"text":"When the train arrives in the city, the platform is crowded with people. Ken takes a deep breath and starts his day."}],"ja":"平日は毎日、ケンは電車に乗って街のオフィスへ通っています。乗っている時間は約四十分です。始発駅から乗るので、たいてい座ることができます。彼は窓際の席に座るのが好きです。途中では、田んぼや小さな川、遠くの山々が見えます。春には、線路沿いの桜がとても美しいです。ケンはよく小説を読んだり、ヘッドホンで音楽を聴いたりします。ときにはただ目を閉じて休みます。電車が街に着くと、ホームは人でいっぱいです。ケンは深呼吸をして、一日を始めます。"},{"id":"15","title":"A New Puppy","difficulty":"beginner","segments":[{"text":"Last month, our family adopted a small brown puppy from an animal shelter. We named him Mocha.","word":"adopted","options":["adapted","adored","adjusted"]},{"text":"At first, Mocha was shy and hid under the sofa. He did not want to eat or play.","word":"shy","options":["sly","dry","high"]},{"text":"After a few days, he began to follow us around the house. Now he wags his tail whenever we come home.","word":"wags","options":["wakes","waves","wraps"]},{"text":"Every evening, my father and I take him for a walk in the park. He loves to chase leaves and sniff the grass.","word":"chase","options":["choose","catch","change"]},{"text":"Taking care of a dog is a big responsibility. But Mocha has already made our home a happier place."}],"ja":"先月、私たちの家族は動物保護施設から小さな茶色の子犬を引き取りました。名前はモカにしました。最初、モカは人見知りでソファの下に隠れていました。食べることも遊ぶこともしたがりませんでした。数日たつと、家の中で私たちの後をついて回るようになりました。今では私たちが帰ってくるたびに、しっぽを振ります。毎晩、父と私でモカを公園へ散歩に連れて行きます。モカは落ち葉を追いかけたり、草のにおいをかいだりするのが大好きです。犬の世話は大きな責任です。でも、モカのおかげで、私たちの家はもうずっと楽しい場所になりました。"},{"id":"16","title":"Making Rice Balls","difficulty":"beginner","segments":[{"text":"Rice balls, or onigiri, are a popular snack in Japan. They are simple to make and easy to carry.","word":"popular","options":["poplar","regular","particular"]},{"text":"First, you cook some white rice and let it cool a little. Then you wet your hands and sprinkle them with salt.","word":"sprinkle","options":["sparkle","wrinkle","spring"]},{"text":"Next, you take a handful of rice and put a filling in the center. Pickled plum and grilled salmon are common choices.","word":"filling","options":["feeling","falling","filing"]},{"text":"You gently press the rice into a triangle shape with both hands. Finally, you wrap it with a strip of dried seaweed.","word":"triangle","options":["tangle","rectangle","trial"]},{"text":"Many people take rice balls to school or work for lunch. Each family has its own favorite way to make them."}],"ja":"おにぎりは日本で人気のある軽食です。作り方が簡単で、持ち運びにも便利です。まず、白いご飯を炊いて、少し冷まします。次に、手を水でぬらして塩をふります。それから、ご飯をひとつかみ取り、真ん中に具を入れます。梅干しや焼き鮭がよく選ばれる具です。両手でご飯をやさしく押して三角の形にします。最後に、細長い海苔で巻きます。多くの人が、学校や職場の昼食におにぎりを持って行きます。家庭ごとに、それぞれお気に入りの作り方があります。"},{"id":"17","title":"The Night Sky in Winter","difficulty":"intermediate","segments":[{"text":"Winter is one of the best seasons for watching the stars. The cold, dry air makes the night sky remarkably clear.","word":"remarkably","options":["reasonably","regrettably","remotely"]},{"text":"One of the easiest constellations to find is Orion, the hunter. Look for three bright stars in a straight line, which form his belt.","word":"constellations","options":["consolations","conversations","consultations"]},{"text":"Just below Orion, you can see Sirius, the brightest star in the night sky. It sometimes appears to twinkle in different colors.","word":"twinkle","options":["tinkle","wrinkle","tickle"]},{"text":"If you live in a city, artificial light can hide many of the fainter stars. Driving to the countryside, even for an hour, makes a dramatic difference.","word":"artificial","options":["official","superficial","beneficial"]},{"text":"Remember to dress warmly and give your eyes time to adjust to the darkness. Patience is the secret to enjoying the stars."}],"ja":"冬は星を眺めるのに最適な季節のひとつです。冷たく乾いた空気のおかげで、夜空がとても澄んで見えます。いちばん見つけやすい星座のひとつが、狩人オリオンです。一直線に並ぶ三つの明るい星を探してください。それがオリオンのベルトです。オリオンのすぐ下には、夜空でいちばん明るい星シリウスが見えます。シリウスはときどき、いろいろな色にまたたいて見えます。都会に住んでいると、人工の光のせいで暗い星の多くが見えなくなります。たとえ一時間でも田舎へ車で出かければ、見え方は劇的に変わります。暖かい服装をして、目が暗さに慣れるまで時間をかけることを忘れないでください。星を楽しむ秘訣は、気長に待つことです。"},{"id":"18","title":"Learning a Musical Instrument","difficulty":"intermediate","segments":[{"text":"Many adults dream of learning a musical instrument but worry that it is too late to start. In fact, research suggests that the adult brain remains surprisingly flexible.","word":"flexible","options":["feasible","sensible","fixable"]},{"text":"The key is not talent but regular practice. Even fifteen minutes a day can lead to steady progress over several months.","word":"steady","options":["ready","study","sturdy"]},{"text":"Beginners often feel frustrated when their fingers do not move the way they want. This feeling is completely normal and usually fades with time.","word":"frustrated","options":["illustrated","frightened","fractured"]},{"text":"Choosing music that you genuinely enjoy is also important. A familiar melody gives you a reason to keep going on difficult days.","word":"genuinely","options":["generally","genially","gently"]},{"text":"Playing an instrument is not only a skill but also a source of comfort. It offers a quiet hour that belongs to you alone."}],"ja":"楽器を習いたいと夢見ながら、始めるには遅すぎるのではと心配する大人は大勢います。実は研究によれば、大人の脳は驚くほど柔軟なままだそうです。大切なのは才能ではなく、定期的な練習です。一日十五分でも、数か月続ければ着実に上達します。初心者は、指が思うように動かないといらいらしがちです。この気持ちはまったく普通のことで、たいていは時間とともに薄れていきます。心から楽しめる曲を選ぶことも大切です。なじみのあるメロディーは、つらい日にも続ける理由を与えてくれます。楽器を弾くことは技能であるだけでなく、心のなぐさめにもなります。自分だけの静かな一時間を与えてくれるのです。"},{"id":"19","title":"The Local Farmers' Market","difficulty":"intermediate","segments":[{"text":"Every Sunday morning, a farmers' market opens in the square near the station. Local growers bring fruit, vegetables, flowers, and homemade bread.","word":"growers","options":["grocers","growls","glowers"]},{"text":"Shopping there is different from shopping at a supermarket. You can talk directly with the people who produced the food.","word":"directly","options":["correctly","discreetly","dryly"]},{"text":"The farmers are happy to explain how their crops were grown. Some will even suggest recipes for vegetables you have never tried.","word":"crops","options":["cops","crabs","drops"]},{"text":"Prices are sometimes a little higher, but the quality is often excellent. Many shoppers say the tomatoes simply taste more vivid.","word":"vivid","options":["livid","valid","vapid"]},{"text":"The market also supports small farms in the region. Buying locally keeps money and skills within the community."}],"ja":"毎週日曜の朝、駅近くの広場でファーマーズマーケットが開かれます。地元の生産者が果物や野菜、花、手作りのパンを持ってきます。そこでの買い物は、スーパーマーケットでの買い物とは違います。食べ物を作った人たちと直接話すことができるのです。農家の人たちは、作物をどうやって育てたかを喜んで説明してくれます。食べたことのない野菜の調理法を勧めてくれる人もいます。値段は少し高めのこともありますが、品質はたいてい優れています。トマトの味がとにかく鮮やかだと言う買い物客も大勢います。このマーケットは、地域の小さな農家を支えてもいます。地元で買うことで、お金と技術が地域の中にとどまるのです。"},{"id":"20","title":"Hot Springs in Japan","difficulty":"intermediate","segments":[{"text":"Japan has more than twenty-five thousand hot springs, known as onsen. They are found almost everywhere, from snowy mountains to quiet seaside towns.","word":"seaside","options":["seashell","decide","beside"]},{"text":"The water is heated naturally by volcanic activity deep underground. Each spring has its own minerals, which give the water a distinctive color or smell.","word":"distinctive","options":["distinguished","instinctive","destructive"]},{"text":"Visitors must follow certain rules before entering the bath. You wash your body thoroughly first, and you never put your towel in the water.","word":"thoroughly","options":["thoughtfully","thankfully","forcefully"]},{"text":"Many people believe that soaking in an onsen relieves stress and sore muscles. Whether or not that is scientifically proven, most bathers leave feeling deeply relaxed.","word":"relieves","options":["receives","believes","relives"]},{"text":"For many travelers, a night at a traditional inn with its own hot spring is the highlight of a trip to Japan."}],"ja":"日本には二万五千以上の温泉があります。雪深い山から静かな海辺の町まで、ほぼどこにでもあります。湯は地下深くの火山活動によって自然に温められています。泉ごとに含まれる鉱物が異なり、それが湯に独特の色やにおいを与えます。入浴の前には、いくつかの決まりを守らなければなりません。まず体をよく洗い、タオルは決して湯につけません。温泉につかるとストレスや筋肉の痛みがやわらぐと、多くの人が信じています。科学的に証明されているかどうかはともかく、ほとんどの入浴客はすっかりくつろいだ気分で帰っていきます。多くの旅行者にとって、温泉のある伝統的な旅館での一泊は、日本旅行のいちばんの思い出です。"},{"id":"21","title":"Working from Home","difficulty":"intermediate","segments":[{"text":"Over the past few years, working from home has become common in many industries. For some employees, it has completely changed their daily routine.","word":"industries","options":["histories","injuries","industrious"]},{"text":"Without a long commute, people can spend more time with their families. They can also organize their schedules more freely.","word":"commute","options":["compute","comment","commune"]},{"text":"However, working alone at home has its own difficulties. Some people find it hard to separate their work from their private life.","word":"separate","options":["desperate","celebrate","operate"]},{"text":"Others miss the casual conversations that happen naturally in an office. Those short chats often lead to useful ideas and stronger relationships.","word":"casual","options":["causal","usual","castle"]},{"text":"Many companies now choose a mix of both styles. Employees work at home on some days and meet in person on others."}],"ja":"ここ数年で、在宅勤務は多くの業界で一般的になりました。人によっては、毎日の生活がすっかり変わりました。長い通勤がなくなり、家族と過ごす時間を増やせるようになりました。予定もより自由に組めるようになりました。しかし、家で一人で働くことには、それなりの難しさがあります。仕事と私生活を切り分けるのが難しいと感じる人もいます。オフィスで自然に生まれる気軽な会話を恋しく思う人もいます。そうしたちょっとしたおしゃべりが、役に立つアイデアや強い人間関係につながることが多いのです。今では多くの会社が、両方の働き方を組み合わせています。社員はある日は家で働き、別の日には直接顔を合わせます。"},{"id":"22","title":"The History of Coffee","difficulty":"intermediate","segments":[{"text":"According to a popular legend, coffee was discovered by a goat herder in Ethiopia. He noticed that his goats became unusually energetic after eating certain red berries.","word":"legend","options":["legion","ledger","lending"]},{"text":"By the fifteenth century, coffee was being grown and traded in Yemen. From there, it spread to cities such as Cairo and Istanbul.","word":"traded","options":["treated","trained","faded"]},{"text":"Coffee houses soon became important places for conversation, music, and debate. Some rulers even tried to ban them, fearing they encouraged rebellion.","word":"debate","options":["debut","rebate","the bait"]},{"text":"In the seventeenth century, coffee arrived in Europe and quickly became fashionable. Today, it is one of the most widely consumed beverages on Earth.","word":"fashionable","options":["fashioned","passable","favorable"]},{"text":"Each cup we drink connects us to a long history of trade, culture, and curiosity."}],"ja":"よく知られた伝説によれば、コーヒーはエチオピアのヤギ飼いによって発見されました。彼は、ある赤い実を食べたヤギが妙に元気になることに気づいたのです。十五世紀までには、イエメンでコーヒーが栽培され、取引されるようになっていました。そこからカイロやイスタンブールといった都市へ広まりました。コーヒーハウスはまもなく、会話や音楽、議論のための大切な場所になりました。反乱をあおることを恐れて、コーヒーハウスを禁止しようとした支配者さえいました。十七世紀にコーヒーはヨーロッパに伝わり、たちまち流行しました。今日では、地球上で最も広く飲まれている飲み物のひとつです。私たちが飲む一杯一杯が、交易と文化と好奇心の長い歴史につながっているのです。"},{"id":"23","title":"The Psychology of Habits","difficulty":"advanced","segments":[{"text":"Psychologists estimate that a large proportion of our daily behavior is driven by habit rather than conscious decision. This allows the brain to conserve energy for more demanding tasks.","word":"proportion","options":["portion","promotion","projection"]},{"text":"A habit typically consists of three elements: a cue, a routine, and a reward. Over time, the connection between them becomes almost automatic.","word":"automatic","options":["aromatic","acrobatic","diplomatic"]},{"text":"Breaking a bad habit is notoriously difficult, because the underlying cue rarely disappears. A more effective strategy is to replace the old routine with a healthier one.","word":"notoriously","options":["notably","victoriously","nutritiously"]},{"text":"Researchers also emphasize the importance of environment. Placing a book on your pillow, for example, makes reading before bed far more likely than willpower alone.","word":"emphasize","options":["empathize","sympathize","emphasis"]},{"text":"Small changes, repeated consistently, can gradually reshape the patterns that define our lives."}],"ja":"心理学者の推計では、私たちの日々の行動のかなりの割合が、意識的な判断ではなく習慣によって動いているといいます。そのおかげで、脳はより負担の大きい作業のためにエネルギーを温存できます。習慣はふつう、きっかけ・決まった行動・報酬の三つの要素からなります。時間がたつにつれ、それらのつながりはほとんど自動的になります。悪い習慣を断つのが難しいことはよく知られていますが、それは根底にあるきっかけがめったになくならないからです。より効果的なのは、古い行動をもっと健全な行動に置き換えることです。研究者は環境の大切さも強調しています。たとえば枕の上に本を置いておくと、意志の力だけに頼るよりも、寝る前に本を読む可能性がずっと高まります。小さな変化を一貫して繰り返せば、私たちの人生を形づくる行動のパターンを少しずつ作り変えることができるのです。"},{"id":"24","title":"Urban Heat Islands","difficulty":"advanced","segments":[{"text":"Cities are often several degrees warmer than the surrounding countryside, a phenomenon known as the urban heat island effect. The difference is most pronounced at night.","word":"pronounced","options":["announced","renounced","pronouns"]},{"text":"Concrete and asphalt absorb sunlight during the day and release it slowly after sunset. Meanwhile, the lack of vegetation means less cooling through evaporation.","word":"asphalt","options":["assault","aspect","exalt"]},{"text":"Air conditioners, vehicles, and factories add even more heat to the urban environment. This creates a cycle in which hotter cities demand ever more energy for cooling.","word":"cycle","options":["sickle","circle","signal"]},{"text":"Planners are experimenting with a range of solutions, including green roofs, reflective pavements, and urban forests. Even a single row of street trees can noticeably lower local temperatures.","word":"reflective","options":["effective","reflexive","respective"]},{"text":"As global temperatures rise, cooling our cities has become not merely a matter of comfort but of public health."}],"ja":"都市は周囲の田園地帯より数度暖かいことがよくあり、この現象はヒートアイランド現象と呼ばれています。その差は夜にいちばん顕著になります。コンクリートやアスファルトは昼間に日光を吸収し、日没後にゆっくりと放出します。一方で、植物が少ないため、蒸発による冷却も起こりにくくなります。エアコンや車、工場は、都市の環境にさらに熱を加えます。こうして、暑い都市ほど冷房のためにますます多くのエネルギーを必要とする悪循環が生まれます。都市計画の担当者たちは、屋上緑化や反射性の舗装、都市の森など、さまざまな解決策を試しています。街路樹が一列あるだけでも、その場所の気温ははっきりと下がります。世界の気温が上がるなか、都市を冷やすことは、もはや快適さだけでなく公衆衛生の問題になっています。"},{"id":"25","title":"The Ethics of Artificial Intelligence","difficulty":"advanced","segments":[{"text":"As artificial intelligence becomes more capable, questions about its ethical use have moved from science fiction into everyday policy debates. Governments, companies, and citizens are all trying to define appropriate limits.","word":"appropriate","options":["approximate","appreciate","apparent"]},{"text":"One central concern is bias. If a system is trained on data that reflects historical inequalities, it may reproduce or even amplify them.","word":"amplify","options":["simplify","clarify","exemplify"]},{"text":"Another issue is transparency. When an automated system makes a decision about a loan or a job application, people reasonably want to know why.","word":"reasonably","options":["seasonably","responsibly","regrettably"]},{"text":"There are also deeper philosophical questions about responsibility. If an autonomous machine causes harm, it is not obvious who should be held accountable.","word":"autonomous","options":["anonymous","enormous","monotonous"]},{"text":"Answering these questions will require not only technical expertise but also careful public discussion."}],"ja":"人工知能の能力が高まるにつれ、その倫理的な使い方をめぐる問いは、SFの世界から日々の政策論議へと移ってきました。政府も企業も市民も、適切な限界をどこに引くべきかを定めようとしています。中心的な懸念のひとつは偏りです。システムが過去の不平等を反映したデータで学習すると、その不平等を再現したり、さらには増幅したりするおそれがあります。もうひとつの問題は透明性です。自動化されたシステムが融資や就職の申し込みについて判断を下すとき、人がその理由を知りたいと思うのはもっともなことです。責任をめぐる、より深い哲学的な問いもあります。自律的に動く機械が損害を与えた場合、誰が責任を負うべきかは明らかではありません。こうした問いに答えるには、技術的な専門知識だけでなく、慎重な公共の議論も必要になるでしょう。"},{"id":"26","title":"Aging Societies","difficulty":"advanced","segments":[{"text":"In many developed countries, the proportion of elderly people is rising rapidly. Japan is a striking example, with nearly thirty percent of its population now over sixty-five.","word":"striking","options":["sticking","stinging","streaking"]},{"text":"This demographic shift places considerable pressure on pension systems and healthcare services. Fewer working-age people must support a growing number of retirees.","word":"demographic","options":["democratic","geographic","dramatic"]},{"text":"At the same time, longer lives create new opportunities. Many older adults remain healthy, active, and eager to contribute to their communities.","word":"eager","options":["meager","eagle","either"]},{"text":"Some local governments are redesigning neighborhoods so that shops, clinics, and parks are within walking distance. Such efforts aim to help residents live independently for as long as possible.","word":"residents","options":["presidents","precedents","resistance"]},{"text":"How a society treats its oldest members may ultimately reveal its deepest values."}],"ja":"多くの先進国で、高齢者の割合が急速に高まっています。日本はその顕著な例で、いまや人口のほぼ三割が六十五歳以上です。この人口構成の変化は、年金制度や医療サービスに大きな負担をかけます。より少ない現役世代が、増え続ける退職者を支えなければならないのです。同時に、長寿は新たな機会も生み出します。多くの高齢者は健康で活動的であり、地域に貢献したいという意欲を持っています。店や診療所、公園が歩いて行ける距離に収まるよう、まちを設計し直している自治体もあります。こうした取り組みは、住民ができるだけ長く自立して暮らせるようにすることを目指しています。社会がいちばん年長の人々をどう扱うかに、結局はその社会の最も深い価値観が表れるのかもしれません。"},{"id":"27","title":"Misinformation Online","difficulty":"advanced","segments":[{"text":"False information has always existed, but social media allows it to spread faster and farther than ever before. A misleading post can reach millions of people within hours.","word":"misleading","options":["misreading","mislaying","misplacing"]},{"text":"Studies suggest that emotionally charged stories are shared more readily than accurate but unexciting ones. Anger and surprise, in particular, tend to override careful judgment.","word":"readily","options":["really","rapidly","steadily"]},{"text":"Correcting a false claim is surprisingly difficult. Once a belief has taken root, contradictory evidence may even cause people to cling to it more firmly.","word":"cling","options":["clean","climb","clink"]},{"text":"Experts therefore recommend a habit sometimes called lateral reading. Before trusting a source, you open new tabs and check what other reliable outlets say about it.","word":"lateral","options":["literal","later","natural"]},{"text":"In an age of information overload, the ability to pause and verify has become an essential civic skill."}],"ja":"偽りの情報は昔から存在しましたが、ソーシャルメディアによって、かつてないほど速く遠くまで広がるようになりました。誤解を招く投稿は、数時間のうちに何百万人にも届くことがあります。研究によれば、感情をかき立てる話は、正確でも面白みのない話より簡単に共有されるといいます。とくに怒りと驚きは、慎重な判断を押しのけてしまいがちです。誤った主張を正すのは、意外なほど難しいものです。いったん信念が根づくと、それに反する証拠がかえって人をその信念にいっそう固執させることさえあります。そこで専門家は、ラテラル・リーディング（横読み）と呼ばれる習慣を勧めています。情報源を信用する前に、新しいタブを開いて、ほかの信頼できる媒体がそれについて何と言っているかを確かめるのです。情報があふれる時代には、立ち止まって確かめる力が、市民にとって欠かせない技能になっています。"},{"id":"28","title":"Biodiversity and Agriculture","difficulty":"advanced","segments":[{"text":"Modern agriculture depends on a surprisingly small number of crops. Just a handful of plants, such as rice, wheat, and maize, provide most of the calories humans consume.","word":"calories","options":["galleries","salaries","colonies"]},{"text":"This reliance on uniform varieties makes food systems efficient but also vulnerable. A single disease or pest can devastate vast areas planted with genetically similar crops.","word":"vulnerable","options":["venerable","valuable","honorable"]},{"text":"Traditional farmers often cultivated dozens of local varieties, each adapted to particular soils and climates. Many of these varieties have now disappeared.","word":"cultivated","options":["captivated","calculated","cultured"]},{"text":"Seed banks around the world are working to preserve this genetic heritage. The largest, in Svalbard, Norway, stores over a million samples deep inside a frozen mountain.","word":"heritage","options":["hermitage","hesitate","vintage"]},{"text":"Protecting agricultural diversity is, in a sense, a form of insurance for the future of our food."}],"ja":"現代の農業は、意外なほど少ない種類の作物に頼っています。米、小麦、トウモロコシなど、ほんの一握りの植物が、人類が摂取するカロリーの大半をまかなっています。均一な品種に頼ることで、食料システムは効率的になりますが、同時にもろくもなります。病気や害虫がひとつ発生しただけで、遺伝的に似た作物が植えられた広大な土地が壊滅することがあるのです。伝統的な農家は、それぞれの土壌や気候に適応した何十もの在来品種を育てていました。そうした品種の多くは、今では失われてしまいました。世界各地のシードバンク（種子銀行）が、この遺伝的な遺産を守ろうと取り組んでいます。最大のものはノルウェーのスバールバル諸島にあり、凍った山の奥深くに百万点以上の種子を保管しています。農業の多様性を守ることは、ある意味で、私たちの食の未来にかける保険なのです。"},{"id":"29","title":"The Philosophy of Time","difficulty":"advanced","segments":[{"text":"Few concepts are as familiar, or as puzzling, as time. Saint Augustine famously remarked that he knew what time was until someone asked him to explain it.","word":"puzzling","options":["muzzling","dazzling","bustling"]},{"text":"Some philosophers argue that only the present moment truly exists. The past has vanished, and the future has not yet arrived.","word":"vanished","options":["varnished","banished","finished"]},{"text":"Others propose that past, present, and future are equally real, like locations on a map. On this view, our sense that time flows may be a kind of illusion.","word":"illusion","options":["solution","delusion","inclusion"]},{"text":"Physics adds further complications. According to relativity, two observers moving at different speeds may disagree about whether two events happened simultaneously.","word":"simultaneously","options":["spontaneously","instantaneously","miscellaneously"]},{"text":"Perhaps the mystery of time endures precisely because we can never step outside it to look."}],"ja":"時間ほど身近でありながら、同時に不可解な概念はそう多くありません。聖アウグスティヌスは、誰かに説明を求められるまでは時間が何であるかを知っていた、という有名な言葉を残しています。現在の瞬間だけが本当に存在すると主張する哲学者もいます。過去はすでに消え去り、未来はまだ来ていないからです。一方で、過去・現在・未来は地図上の場所のように等しく実在すると考える哲学者もいます。この見方によれば、時間が流れているという私たちの感覚は、一種の錯覚なのかもしれません。物理学はさらに問題を複雑にします。相対性理論によれば、異なる速さで動く二人の観測者は、二つの出来事が同時に起きたかどうかについて意見が食い違うことがあります。時間の謎が消えないのは、まさに私たちが時間の外に出て眺めることが決してできないからなのかもしれません。"},{"id":"30","title":"Renewable Energy and the Grid","difficulty":"advanced","segments":[{"text":"Solar and wind power have become dramatically cheaper over the past decade. In many regions, they are now the least expensive way to generate new electricity.","word":"dramatically","options":["grammatically","diplomatically","democratically"]},{"text":"Their main weakness is that they are intermittent. The sun does not always shine, and the wind does not always blow when demand is high.","word":"intermittent","options":["intermediate","incompetent","impertinent"]},{"text":"To address this, engineers are developing large batteries that store surplus energy and release it later. Pumped hydro, which moves water uphill and lets it flow down again, offers another solution.","word":"batteries","options":["bakeries","flatteries","galleries"]},{"text":"Another approach is to connect distant regions with high-voltage transmission lines. When the weather is calm in one area, it may be windy in another.","word":"transmission","options":["transition","translation","transcription"]},{"text":"The transition to clean energy is therefore not only about generating power but also about managing it wisely."}],"ja":"太陽光と風力による発電は、この十年で劇的に安くなりました。多くの地域で、今や新たに電気をつくる最も安い方法になっています。その主な弱点は、発電が途切れがちなことです。太陽はいつも照っているわけではなく、需要が高いときに風が吹いているとも限りません。これに対処するため、技術者たちは余った電力をためておき、あとで放出する大型の蓄電池を開発しています。水を高いところへくみ上げ、ふたたび流し下ろす揚水発電も、別の解決策になります。離れた地域どうしを高圧送電線で結ぶという方法もあります。ある地域で風がなくても、別の地域では風が吹いているかもしれないからです。したがって、クリーンエネルギーへの移行は、電気をつくることだけでなく、それを賢く管理することでもあるのです。"}];
+const LABEL = {beginner:'初級', intermediate:'中級', advanced:'上級'};
+const app = document.getElementById('app');
+const hasSpeech = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+const isAndroid = /android/i.test(navigator.userAgent);
+const clean = w => w.replace(/[.,!?;:'"]/g,'').toLowerCase();
+const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function store(k, v){
+  try{ if(v === undefined) return JSON.parse(localStorage.getItem(k)); localStorage.setItem(k, JSON.stringify(v)); }
+  catch(e){ return null; }
+}
+const prefs = store('hag-prefs') || {};
+let filter = prefs.filter || 'all';
+let rate = prefs.rate || 0.9;
+let voices = [], voice = null;
+
+/* ---------- 音声 ---------- */
+function loadVoices(){
+  if(!hasSpeech) return;
+  const all = speechSynthesis.getVoices();
+  let en = all.filter(v => v.lang && (v.lang.startsWith('en-') || v.lang === 'en'));
+  if(!en.length) en = all.filter(v => v.lang && v.lang.toLowerCase().includes('en'));
+  voices = en;
+  const saved = voices.find(v => v.name === prefs.voice);
+  voice = saved
+    || voices.find(v => /Google (US|UK)/.test(v.name))
+    || voices.find(v => v.name.includes('Google'))
+    || voices.find(v => v.name.includes('Microsoft'))
+    || voices.find(v => /Samantha|Daniel|Karen/.test(v.name))
+    || voices.find(v => v.lang === 'en-US' || v.lang === 'en-GB')
+    || voices[0] || null;
+  if(state.view === 'quiz') renderVoiceSelect();
+}
+if(hasSpeech){
+  loadVoices();
+  speechSynthesis.onvoiceschanged = loadVoices;
+  if(isAndroid){ [100,500,1000].forEach(t => setTimeout(loadVoices, t)); }
+}
+function savePrefs(){ store('hag-prefs', {filter, rate, voice: voice && voice.name}); }
+
+/* ---------- 状態 ---------- */
+const state = { view:'list', p:null, seg:0, wordIdx:-1, results:[], playing:false, paused:false, quizOpen:false };
+let timers = [], speakId = 0;
+function clearTimers(){ timers.forEach(t => { clearTimeout(t); clearInterval(t); }); timers = []; }
+function stopSpeech(){ speakId++; clearTimers(); if(hasSpeech) speechSynthesis.cancel(); state.playing = false; state.paused = false; }
+
+/* ---------- 一覧 ---------- */
+function renderList(){
+  state.view = 'list';
+  const best = store('hag-best') || {};
+  const list = PASSAGES.filter(p => filter === 'all' || p.difficulty === filter);
+  app.innerHTML = `
+    <header class="top">
+      <h1>hear-and-guess</h1>
+      <p class="muted">英文を選んで、聞き取りを鍛えましょう</p>
+    </header>
+    <div class="filters" role="group" aria-label="難易度">
+      ${['all','beginner','intermediate','advanced'].map(k =>
+        `<button type="button" data-f="${k}" aria-pressed="${filter===k}">${k==='all'?'すべて':LABEL[k]}</button>`).join('')}
+    </div>
+    <div class="grid">
+      ${list.map(p => {
+        const n = p.segments.filter(s => s.word).length, b = best[p.id];
+        return `<button type="button" class="card pcard" data-id="${p.id}">
+          <div class="row"><h3>${esc(p.title)}</h3><span class="badge ${p.difficulty}">${LABEL[p.difficulty]}</span></div>
+          <div class="meta">クイズ ${n}問 ・ ${p.segments.length}区切り${b != null ? `　<b>最高 ${b} / ${n}</b>` : ''}</div>
+        </button>`;
+      }).join('')}
+    </div>`;
+  app.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { filter = b.dataset.f; savePrefs(); renderList(); });
+  app.querySelectorAll('[data-id]').forEach(b => b.onclick = () => startPassage(PASSAGES.find(p => p.id === b.dataset.id)));
+}
+
+/* ---------- 再生画面 ---------- */
+const ICON = {
+  back:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>',
+  play:'<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>',
+  pause:'<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>',
+  stop:'<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>',
+  redo:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>',
+  ear:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/></svg>'
+};
+
+function startPassage(p){
+  stopSpeech();
+  Object.assign(state, { view:'quiz', p, seg:0, wordIdx:-1, results:[], quizOpen:false });
+  renderQuiz();
+  window.scrollTo(0,0);
+}
+
+function renderQuiz(){
+  const p = state.p, n = p.segments.filter(s => s.word).length;
+  app.innerHTML = `
+    <div class="head">
+      <button type="button" class="icon-btn" id="back" aria-label="一覧に戻る">${ICON.back}</button>
+      <div><h2>${esc(p.title)}</h2><p class="muted" id="prog"></p></div>
+    </div>
+    <section class="card text-card">
+      <div class="row"><span class="badge ${p.difficulty}">${LABEL[p.difficulty]}</span><span id="segc"></span></div>
+      <div class="passage" id="passage" aria-live="polite"></div>
+    </section>
+    <section class="card player">
+      <div class="controls">
+        <button type="button" class="icon-btn" id="restart" aria-label="最初から">${ICON.redo}</button>
+        <button type="button" class="play" id="play" aria-label="再生"></button>
+        <button type="button" class="icon-btn" id="stop" aria-label="止める">${ICON.stop}</button>
+      </div>
+      <div class="field">
+        <label class="lab" for="rate"><span>再生速度</span><b id="rateVal"></b></label>
+        <input type="range" id="rate" min="0.5" max="1.5" step="0.1" value="${rate}">
+      </div>
+      <div class="field" id="voiceBox"></div>
+    </section>
+    <div id="modal"></div>`;
+  document.getElementById('back').onclick = () => { stopSpeech(); renderList(); };
+  document.getElementById('restart').onclick = () => startPassage(p);
+  document.getElementById('stop').onclick = () => { stopSpeech(); state.wordIdx = -1; updateQuiz(); };
+  document.getElementById('play').onclick = togglePlay;
+  const r = document.getElementById('rate');
+  r.oninput = () => { rate = +r.value; savePrefs(); updateQuiz(); };
+  renderVoiceSelect();
+  updateQuiz();
+}
+
+function renderVoiceSelect(){
+  const box = document.getElementById('voiceBox'); if(!box) return;
+  if(!hasSpeech){ box.innerHTML = '<p class="warn">このブラウザは読み上げに対応していません。Chrome や Safari でお試しください。</p>'; return; }
+  if(!voices.length){ box.innerHTML = '<p class="note">英語の音声を読み込んでいます…</p>'; return; }
+  box.innerHTML = `
+    <label class="lab" for="voice"><span>音声（英語の音声を選んでください）</span></label>
+    <select id="voice">${voices.map(v => `<option value="${esc(v.name)}"${voice && v.name===voice.name?' selected':''}>${esc(v.name)} (${v.lang})</option>`).join('')}</select>
+    <p class="note">発音が不自然なときは「Google」や「en-US」を含む音声を選んでください。</p>`;
+  const sel = document.getElementById('voice');
+  sel.disabled = state.quizOpen;
+  sel.onchange = () => { voice = voices.find(v => v.name === sel.value) || voice; savePrefs(); };
+}
+
+function quizIndexIn(words, w){ return words.findIndex(x => clean(x) === w.toLowerCase()); }
+
+function updateQuiz(){
+  const p = state.p, n = p.segments.filter(s => s.word).length;
+  document.getElementById('prog').textContent = `クイズ ${state.results.length} / ${n}　・　区切り ${Math.min(state.seg+1, p.segments.length)} / ${p.segments.length}`;
+  document.getElementById('segc').textContent = `${state.seg} / ${p.segments.length} 区切り完了`;
+  document.getElementById('rateVal').textContent = rate.toFixed(1) + 'x';
+  const answered = new Map(state.results.map(r => [r.seg, r]));
+  let html = '';
+  p.segments.forEach((s, i) => {
+    if(i > state.seg) return;
+    const words = s.text.split(/\s+/), qi = s.word ? quizIndexIn(words, s.word) : -1;
+    const show = i < state.seg ? words.length : (state.quizOpen ? words.length : state.wordIdx + 1);
+    words.slice(0, Math.max(0, show)).forEach((w, k) => {
+      if(k === qi){
+        const r = answered.get(i);
+        if(!r) html += `<span class="blank" aria-label="空欄">［　　］</span> `;
+        else html += `<span class="w ${r.ok?'got':'miss'}">${esc(w)}</span> `;
+      } else html += `<span class="w">${esc(w)}</span> `;
+    });
+  });
+  if(state.seg === 0 && state.wordIdx < 0 && !state.playing) html += `<p class="hint">再生ボタンを押すと、読み上げが始まります</p>`;
+  document.getElementById('passage').innerHTML = html;
+  const play = document.getElementById('play');
+  play.innerHTML = state.playing ? ICON.pause : ICON.play;
+  play.setAttribute('aria-label', state.playing ? '一時停止' : '再生');
+  const lock = state.quizOpen || !hasSpeech;
+  ['play','stop','restart','rate'].forEach(id => document.getElementById(id).disabled = lock);
+  const sel = document.getElementById('voice'); if(sel) sel.disabled = state.quizOpen;
+}
+
+function togglePlay(){
+  if(!hasSpeech) return;
+  if(state.playing){
+    if(isAndroid){ stopSpeech(); state.paused = true; state.wordIdx = -1; }
+    else { speechSynthesis.pause(); clearTimers(); state.playing = false; state.paused = true; }
+    updateQuiz(); return;
+  }
+  if(state.paused && !isAndroid){
+    speechSynthesis.resume(); state.playing = true; state.paused = false; revealFrom(state.wordIdx); updateQuiz(); return;
+  }
+  speakSegment();
+}
+
+// 単語を読み上げに合わせて少しずつ出す。境界イベントが来ればそれに従い、来なければ推定の速さで出す。
+let boundaryWorks = false, perWordMs = 400, totalWords = 0;
+function revealFrom(start){
+  clearTimers();
+  let k = start;
+  const t = setInterval(() => {
+    if(boundaryWorks) return;
+    k++; if(k < totalWords){ state.wordIdx = k; updateQuiz(); } else clearInterval(t);
+  }, perWordMs);
+  timers.push(t);
+}
+
+function speakSegment(){
+  stopSpeech();
+  const myId = speakId;
+  const s = state.p.segments[state.seg];
+  const words = s.text.split(/\s+/);
+  totalWords = words.length;
+  // 各単語の開始位置（境界イベントの charIndex を単語番号に直すため）
+  const starts = []; { let pos = 0; for(const w of words){ const i = s.text.indexOf(w, pos); starts.push(i); pos = i + w.length; } }
+  perWordMs = 1000 / ((150 / 60) * rate);
+  boundaryWorks = false;
+  let done = false;
+  const finish = () => {
+    if(done || myId !== speakId) return; done = true;
+    clearTimers(); state.playing = false; state.paused = false; state.wordIdx = totalWords;
+    onSegmentEnd();
+  };
+  const u = new SpeechSynthesisUtterance(s.text);
+  if(voice) u.voice = voice;
+  u.lang = voice ? voice.lang : 'en-US';
+  u.rate = rate; u.pitch = 1;
+  u.onstart = () => { if(myId !== speakId) return; state.wordIdx = 0; updateQuiz(); revealFrom(0); };
+  u.onboundary = e => {
+    if(myId !== speakId || e.name && e.name !== 'word') return;
+    boundaryWorks = true;
+    let k = 0; while(k + 1 < starts.length && starts[k + 1] <= e.charIndex) k++;
+    if(k > state.wordIdx){ state.wordIdx = k; updateQuiz(); }
+  };
+  u.onend = finish;
+  u.onerror = e => {
+    if(e.error === 'interrupted' || e.error === 'canceled'){ return; }
+    finish();
+  };
+  // 終わりの合図が来ない端末向けの保険
+  timers.push(setTimeout(finish, (totalWords * perWordMs) + 4000));
+  speechSynthesis.speak(u);
+  state.playing = true; state.paused = false; state.wordIdx = -1;
+  updateQuiz();
+}
+
+function onSegmentEnd(){
+  const s = state.p.segments[state.seg];
+  if(s.word){ openQuiz(s); }
+  else nextSegment();
+}
+function nextSegment(){
+  if(state.seg < state.p.segments.length - 1){
+    state.seg++; state.wordIdx = -1; updateQuiz();
+    speakSegment();   // 次の区切りは自動で続ける
+  } else showResults();
+}
+
+/* ---------- 四択 ---------- */
+function shuffle(a){ for(let i = a.length - 1; i > 0; i--){ const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function openQuiz(s){
+  state.quizOpen = true; updateQuiz();
+  const opts = shuffle([s.word, ...s.options]);
+  const m = document.getElementById('modal');
+  m.innerHTML = `
+    <div class="overlay" role="dialog" aria-modal="true" aria-labelledby="qt">
+      <div class="card dialog">
+        <h3 id="qt">${ICON.ear}今の単語、聞き取れましたか？</h3>
+        <p class="muted">空欄に入る、聞こえた単語を選んでください</p>
+        <div style="display:flex;justify-content:center"><button type="button" class="btn" id="again">もう一度聞く</button></div>
+        <div class="opts">${opts.map((o, i) => `<button type="button" class="opt" data-i="${i}"><span>${esc(o)}</span><span class="mk"></span></button>`).join('')}</div>
+        <div id="after"></div>
+      </div>
+    </div>`;
+  document.getElementById('again').onclick = () => {
+    if(!hasSpeech) return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(s.text);
+    if(voice) u.voice = voice; u.lang = voice ? voice.lang : 'en-US'; u.rate = Math.min(rate, 0.9);
+    speechSynthesis.speak(u);
+  };
+  const btns = [...m.querySelectorAll('.opt')];
+  btns[0].focus();
+  btns.forEach(b => b.onclick = () => {
+    const pick = opts[+b.dataset.i], ok = pick === s.word;
+    btns.forEach((x, i) => {
+      x.disabled = true;
+      if(opts[i] === s.word){ x.classList.add('ok'); x.querySelector('.mk').textContent = '○'; }
+      else if(x === b){ x.classList.add('ng'); x.querySelector('.mk').textContent = '×'; }
+    });
+    if(hasSpeech) speechSynthesis.cancel();
+    state.results.push({ seg: state.seg, word: s.word, pick, ok });
+    document.getElementById('after').innerHTML = `
+      <div class="verdict ${ok?'ok':'ng'}">${ok ? '正解です！' : `残念！正解は「${esc(s.word)}」でした`}</div>
+      <button type="button" class="btn primary" id="cont" style="width:100%;margin-top:10px">続ける</button>`;
+    const c = document.getElementById('cont'); c.focus();
+    c.onclick = () => { m.innerHTML = ''; state.quizOpen = false; nextSegment(); };
+  });
+}
+
+/* ---------- 結果 ---------- */
+function showResults(){
+  stopSpeech();
+  state.view = 'result';
+  const p = state.p, n = state.results.length, ok = state.results.filter(r => r.ok).length;
+  const pct = n ? Math.round(ok / n * 100) : 0;
+  const best = store('hag-best') || {};
+  if(best[p.id] == null || ok > best[p.id]){ best[p.id] = ok; store('hag-best', best); }
+  const msg = pct === 100 ? '完璧です！' : pct >= 75 ? 'すばらしい！' : pct >= 50 ? 'よくできました' : 'もう一度挑戦してみましょう';
+  const quizWords = new Set(state.results.map(r => r.word.toLowerCase()));
+  const en = p.segments.map(s => s.text).join(' ').split(/\s+/)
+    .map(w => quizWords.has(clean(w)) ? `<mark>${esc(w)}</mark>` : esc(w)).join(' ');
+  app.innerHTML = `
+    <section class="card score">
+      <h2>リスニング完了</h2>
+      <div class="big">${ok} / ${n}</div>
+      <p style="margin:0;font-weight:500">${msg}</p>
+      <div class="bar" role="img" aria-label="正答率 ${pct}%"><i style="width:${pct}%"></i></div>
+      <p class="muted" style="margin:0;font-size:14px">正答率 ${pct}%</p>
+      <div class="detail">${state.results.map(r => `
+        <div><span>${esc(r.word)}${r.ok ? '' : ` <span class="ans">（選んだ答え：${esc(r.pick)}）</span>`}</span><span class="${r.ok?'o':'x'}">${r.ok?'○':'×'}</span></div>`).join('')}
+      </div>
+    </section>
+    <section class="card full">
+      <h3>英文と日本語訳</h3>
+      <h4>English</h4>
+      <p class="en">${en}</p>
+      <h4>日本語訳</h4>
+      <p class="ja">${esc(p.ja)}</p>
+    </section>
+    <div class="actions">
+      <button type="button" class="btn" id="toList">一覧に戻る</button>
+      <button type="button" class="btn primary" id="again2">もう一度</button>
+    </div>`;
+  document.getElementById('toList').onclick = renderList;
+  document.getElementById('again2').onclick = () => startPassage(p);
+  window.scrollTo(0,0);
+}
+
+renderList();
+</script>
+</body></html>
