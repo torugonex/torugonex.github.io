@@ -1,0 +1,430 @@
+<!doctype html><html lang="ja"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>般若心経パズル</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f4ecdc; --paper2:#fbf6ea; --ink:#1f1a14; --ink-soft:#7a6d5c; --guide:#c9bca5;
+  --line:#d8c6a6; --shu:#b8321f; --shu-soft:#b8321f22; --ok:#2f6b3a; --shadow:0 2px 5px #0003;
+  --cell:28px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#1d1a16; --paper2:#2a251f; --ink:#efe6d4; --ink-soft:#a89a85; --guide:#4d4439;
+    --line:#3b342b; --shu:#e0634b; --shu-soft:#e0634b26; --ok:#7fc08a; --shadow:0 2px 6px #0008;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#1d1a16; --paper2:#2a251f; --ink:#efe6d4; --ink-soft:#a89a85; --guide:#4d4439;
+  --line:#3b342b; --shu:#e0634b; --shu-soft:#e0634b26; --ok:#7fc08a; --shadow:0 2px 6px #0008;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font-family:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
+  -webkit-tap-highlight-color:transparent;overflow-x:hidden}
+header{padding:10px 16px 6px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;margin:0 0 8px;letter-spacing:.1em}
+h1 small{font-size:12px;color:var(--ink-soft);letter-spacing:0;margin-left:6px}
+.ctrl{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+select,button{font:inherit;font-size:14px;color:var(--ink);background:var(--paper2);border:1px solid var(--line);
+  border-radius:6px;padding:6px 10px;cursor:pointer}
+button.main{background:var(--shu);color:#fff;border-color:var(--shu)}
+button:disabled{opacity:.4;cursor:default}
+.status{display:flex;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--ink-soft);margin-top:8px}
+.status b{color:var(--ink);font-weight:700}
+#boardWrap{position:sticky;top:0;z-index:5;background:var(--paper);padding:8px 16px;border-bottom:1px solid var(--line);
+  overflow-x:auto;overflow-y:hidden}
+#board{position:relative;margin:0 auto;background:var(--paper2);box-shadow:var(--shadow);
+  background-image:repeating-linear-gradient(to left,var(--line) 0 1px,transparent 1px var(--cell));
+  border:1px solid var(--line)}
+.stk span{display:block;width:var(--cell);height:var(--cell);line-height:var(--cell);text-align:center;
+  font-size:calc(var(--cell) * .72)}
+.slot{position:absolute;width:var(--cell);border:1px dashed var(--guide);border-radius:3px;cursor:pointer;
+  transition:background .2s}
+.slot.guide{color:var(--guide)}
+.slot.canDrop{background:var(--shu-soft)}
+.slot.filled{border-color:transparent;color:var(--ink);cursor:default;background:none;animation:ink .5s}
+.slot.hint,.piece.hint{animation:blink .45s 4}
+.slot.reading{background:var(--shu-soft);color:var(--shu)}
+.slot.bad{animation:shake .35s}
+.title-col{position:absolute;top:0;width:var(--cell);color:var(--shu);font-weight:700}
+@keyframes ink{from{opacity:0;transform:scale(1.15)}to{opacity:1;transform:none}}
+@keyframes blink{50%{background:var(--shu);color:#fff}}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+main{max-width:1000px;margin:0 auto;padding:10px 16px 80px}
+.trayHead{font-size:13px;color:var(--ink-soft);margin:4px 0 8px}
+#tray{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start;justify-content:center}
+.piece{background:var(--paper2);border:1px solid var(--line);border-radius:4px;padding:3px;box-shadow:var(--shadow);
+  cursor:pointer;user-select:none;-webkit-user-select:none;transition:transform .12s}
+.piece.sel{outline:2px solid var(--shu);transform:translateY(-4px)}
+.piece.bad{animation:shake .35s;border-color:var(--shu)}
+.piece.dragging{opacity:.3}
+.piece.decoyShown{opacity:.45;text-decoration:line-through;cursor:default}
+#ghost{position:fixed;pointer-events:none;z-index:50;opacity:.85;transform:translate(-50%,-20%)}
+#overlay{position:fixed;inset:0;background:#0007;display:none;align-items:center;justify-content:center;z-index:60;padding:16px}
+#overlay.show{display:flex}
+.card{background:var(--paper2);border-radius:10px;padding:20px;max-width:420px;width:100%;box-shadow:var(--shadow);
+  max-height:85vh;overflow:auto}
+.card h2{margin:0 0 8px;font-size:20px;color:var(--shu)}
+.card .stars{font-size:28px;color:var(--shu);letter-spacing:.2em}
+.card .btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.card table{border-collapse:collapse;width:100%;font-size:14px}
+.card td{padding:3px 4px;border-bottom:1px solid var(--line);vertical-align:top}
+.card td.y{color:var(--ink-soft);font-size:12px}
+#caption{position:fixed;left:0;right:0;bottom:0;background:var(--paper2);border-top:2px solid var(--shu);
+  padding:10px 16px;display:none;z-index:40;text-align:center}
+#caption.show{display:block}
+#caption .t{font-size:22px;letter-spacing:.1em}
+#caption .y{font-size:14px;color:var(--ink-soft)}
+</style>
+</head>
+<body>
+<header>
+  <h1>般若心経パズル<small>句のピースを経文の正しい場所へ</small></h1>
+  <div class="ctrl">
+    <select id="lv" aria-label="段階">
+      <option value="1">段階1 なぞり（下敷きあり）</option>
+      <option value="2">段階2 虫食い（下敷き半分）</option>
+      <option value="3">段階3 頭文字（最初の一字だけ）</option>
+      <option value="4">段階4 まとまり（大きいピース）</option>
+      <option value="5">段階5 一句ずつ</option>
+      <option value="6">段階6 まぎらわし（偽ピース入り）</option>
+    </select>
+    <select id="rng" aria-label="範囲"></select>
+    <button class="main" id="bStart">はじめる</button>
+    <button id="bHint">ヒント</button>
+    <button id="bModel">お手本</button>
+    <button id="bRead">🔊 読誦</button>
+    <button id="bSnd" title="効果音">🔔</button>
+  </div>
+  <div class="status">
+    <span>残り <b id="sLeft">-</b></span>
+    <span>ミス <b id="sMiss">0</b></span>
+    <span>ヒント <b id="sHint">0</b></span>
+    <span>時間 <b id="sTime">0:00</b></span>
+    <span id="sBest"></span>
+  </div>
+</header>
+<div id="boardWrap"><div id="board"></div></div>
+<main>
+  <div class="trayHead" id="trayHead">ピースを選んでから、盤の枠をタップ（PCはドラッグでも可）</div>
+  <div id="tray"></div>
+</main>
+<div id="overlay"><div class="card" id="card"></div></div>
+<div id="caption"><div class="t" id="capT"></div><div class="y" id="capY"></div><button id="bStop" style="margin-top:6px">止める</button></div>
+
+<script>
+// ---- 経文データ [本文, 読み] ----
+const PH = [
+ ["観自在菩薩","かんじざいぼさつ"],["行深般若波羅蜜多時","ぎょうじんはんにゃはらみったじ"],
+ ["照見五蘊皆空","しょうけんごうんかいくう"],["度一切苦厄","どいっさいくやく"],["舎利子","しゃりし"],
+ ["色不異空","しきふいくう"],["空不異色","くうふいしき"],["色即是空","しきそくぜくう"],["空即是色","くうそくぜしき"],
+ ["受想行識","じゅそうぎょうしき"],["亦復如是","やくぶにょぜ"],["舎利子","しゃりし"],["是諸法空相","ぜしょほうくうそう"],
+ ["不生不滅","ふしょうふめつ"],["不垢不浄","ふくふじょう"],["不増不減","ふぞうふげん"],["是故空中","ぜこくうちゅう"],
+ ["無色","むしき"],["無受想行識","むじゅそうぎょうしき"],["無眼耳鼻舌身意","むげんにびぜっしんい"],
+ ["無色声香味触法","むしきしょうこうみそくほう"],["無眼界","むげんかい"],["乃至無意識界","ないしむいしきかい"],
+ ["無無明","むむみょう"],["亦無無明尽","やくむむみょうじん"],["乃至無老死","ないしむろうし"],["亦無老死尽","やくむろうしじん"],
+ ["無苦集滅道","むくしゅうめつどう"],["無智亦無得","むちやくむとく"],["以無所得故","いむしょとっこ"],
+ ["菩提薩埵","ぼだいさった"],["依般若波羅蜜多故","えはんにゃはらみったこ"],["心無罣礙","しんむけいげ"],
+ ["無罣礙故","むけいげこ"],["無有恐怖","むうくふ"],["遠離一切顛倒夢想","おんりいっさいてんどうむそう"],
+ ["究竟涅槃","くきょうねはん"],["三世諸仏","さんぜしょぶつ"],["依般若波羅蜜多故","えはんにゃはらみったこ"],
+ ["得阿耨多羅三藐三菩提","とくあのくたらさんみゃくさんぼだい"],["故知般若波羅蜜多","こちはんにゃはらみった"],
+ ["是大神呪","ぜだいじんしゅ"],["是大明呪","ぜだいみょうしゅ"],["是無上呪","ぜむじょうしゅ"],["是無等等呪","ぜむとうどうしゅ"],
+ ["能除一切苦","のうじょいっさいく"],["真実不虚","しんじつふこ"],["故説般若波羅蜜多呪","こせつはんにゃはらみったしゅ"],
+ ["即説呪曰","そくせつしゅわつ"],["羯諦羯諦","ぎゃーてーぎゃーてー"],["波羅羯諦","はーらーぎゃーてー"],
+ ["波羅僧羯諦","はらそうぎゃーてー"],["菩提薩婆訶","ぼーじーそわか"],["般若心経","はんにゃしんぎょう"]
+];
+const TITLE = "摩訶般若波羅蜜多心経";
+// 偽ピース（本物に似せたもの）: [偽の文, 似せ元]
+const DECOYS = [
+ ["行深般若波羅蜜時","行深般若波羅蜜多時"],["照見五蘊皆色","照見五蘊皆空"],["色不異色","空不異色"],["空即是空","空即是色"],
+ ["不生不浄","不生不滅"],["不増不滅","不増不減"],["無眼耳鼻身意","無眼耳鼻舌身意"],["無色声香触味法","無色声香味触法"],
+ ["亦無老死","亦無老死尽"],["無苦集道滅","無苦集滅道"],["心無罣礙故","心無罣礙"],["遠離一切夢想","遠離一切顛倒夢想"],
+ ["得阿耨多羅三藐菩提","得阿耨多羅三藐三菩提"],["是大神明呪","是大神呪"],["能除一切苦厄","能除一切苦"],["波羅僧羯諦羯諦","波羅僧羯諦"]
+];
+const LEVELS = {1:{guide:"full"},2:{guide:"half"},3:{guide:"head"},4:{chunk:true},5:{},6:{decoys:true}};
+const MAXLV = 6;
+const ROWS = 17;
+
+// ---- 配置（縦17字、句の途中で改行しない） ----
+const POS = []; let NCOL = 0;
+(function(){ let col=0,row=0; PH.forEach((p,i)=>{ const L=p[0].length; if(row+L>ROWS){col++;row=0;} POS[i]={col,row}; row+=L; }); NCOL=col+1; })();
+const PARTS = [0,1,2,3].map(k=>[Math.round(k*NCOL/4), Math.round((k+1)*NCOL/4)-1]);
+const KANJI = ["一","二","三","四"];
+
+const $ = id=>document.getElementById(id);
+const rngSel = $("rng");
+rngSel.innerHTML = `<option value="all">範囲 全文</option>` + PARTS.map((p,k)=>{
+  const first = PH.findIndex((_,i)=>POS[i].col===p[0]);
+  return `<option value="${k}">第${KANJI[k]}部 ${PH[first][0]}〜</option>`;}).join("");
+
+function store(k,v){ try{ if(v===undefined) return JSON.parse(localStorage.getItem(k)); localStorage.setItem(k,JSON.stringify(v)); }catch(e){ return null; } }
+const saved = store("hs_prefs") || {};
+if(saved.lv) $("lv").value = saved.lv;
+if(saved.rng!=null) rngSel.value = saved.rng;
+let soundOn = saved.snd !== false;
+
+// ---- 状態 ----
+let S = null, selPiece = null, timerId = null;
+
+function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];} return a; }
+
+function newGame(){
+  stopReading();
+  const lv = +$("lv").value, rng = rngSel.value, cfg = LEVELS[lv];
+  store("hs_prefs",{lv, rng, snd:soundOn});
+  const [c0,c1] = rng==="all" ? [0,NCOL-1] : PARTS[+rng];
+  const idxs = PH.map((_,i)=>i).filter(i=>POS[i].col>=c0 && POS[i].col<=c1);
+  const slots = [];
+  for(const i of idxs){
+    const last = slots[slots.length-1];
+    if(cfg.chunk && last && POS[last.idxs[0]].col===POS[i].col && last.idxs.length<3 && last.text.length+PH[i][0].length<=12){
+      last.idxs.push(i); last.text += PH[i][0]; last.yomi += " " + PH[i][1];
+    } else slots.push({idxs:[i], text:PH[i][0], yomi:PH[i][1]});
+  }
+  slots.forEach((s,k)=>{
+    s.id=k; s.col=POS[s.idxs[0]].col; s.row=POS[s.idxs[0]].row; s.filled=false;
+    const n = s.text.length;
+    if(cfg.guide==="half"){  // 約半分を隠す（1字は必ず隠し、2字以上なら1字は必ず残す）
+      do{ s.mask = [...s.text].map(()=>Math.random()<.5); }
+      while(s.mask.every(Boolean) || (n>1 && !s.mask.some(Boolean)));
+    } else s.mask = [...s.text].map((_,j)=>cfg.guide==="full" || (cfg.guide==="head" && j===0));
+  });
+  let pieces = slots.map(s=>({text:s.text, decoy:false}));
+  if(cfg.decoys){
+    let ds = DECOYS.filter(([,of])=>idxs.some(i=>PH[i][0]===of));
+    ds = shuffle(ds).slice(0, rng==="all" ? 8 : 4);
+    pieces = pieces.concat(ds.map(([t])=>({text:t, decoy:true})));
+  }
+  pieces = shuffle(pieces).map((p,k)=>({...p, id:k, placed:false}));
+  const showTitle = rng==="all" || rng==="0";
+  S = {lv, rng, cfg, c0, c1, slots, pieces, showTitle, miss:0, hints:0, t0:null, elapsed:0, done:false};
+  selPiece = null;
+  clearInterval(timerId); timerId = setInterval(tick, 500);
+  render(); tick(); showBest();
+}
+
+function tick(){
+  if(!S) return;
+  const sec = S.done ? S.elapsed : (S.t0 ? Math.floor((Date.now()-S.t0)/1000) : 0);
+  $("sTime").textContent = Math.floor(sec/60) + ":" + String(sec%60).padStart(2,"0");
+  $("sLeft").textContent = S.slots.filter(s=>!s.filled).length;
+  $("sMiss").textContent = S.miss; $("sHint").textContent = S.hints;
+}
+function startClock(){ if(!S.t0) S.t0 = Date.now(); }
+const bestKey = ()=>`hs_best_${S.lv}_${S.rng}`;
+function showBest(){
+  const b = store(bestKey());
+  $("sBest").innerHTML = b ? `最高 <b>ミス${b.miss}・${Math.floor(b.time/60)}:${String(b.time%60).padStart(2,"0")}</b>` : "";
+}
+
+// ---- 描画 ----
+function stack(t){ return [...t].map(c=>`<span>${c}</span>`).join(""); }
+function guideStack(s){ return [...s.text].map((c,k)=>`<span>${s.mask[k]?c:""}</span>`).join(""); }
+function colX(col){ return (S.showTitle?1:0) + (col - S.c0); }
+
+function sizeCell(){
+  const ncols = (S.c1-S.c0+1) + (S.showTitle?1:0);
+  const w = Math.min($("boardWrap").clientWidth - 34, 960);
+  const cell = Math.max(16, Math.min(40, Math.floor(w/ncols), Math.floor(window.innerHeight*0.5/ROWS)));
+  document.documentElement.style.setProperty("--cell", cell+"px");
+  const b = $("board"); b.style.width = (ncols*cell+2)+"px"; b.style.height = (ROWS*cell+2)+"px";
+  return cell;
+}
+
+function render(){
+  const cell = sizeCell(), b = $("board");
+  let h = "";
+  if(S.showTitle) h += `<div class="title-col stk" style="right:0">${stack(TITLE)}</div>`;
+  for(const s of S.slots){
+    const cls = "slot stk" + (s.filled ? " filled" : " guide");
+    const txt = s.filled ? stack(s.text) : guideStack(s);
+    h += `<div class="${cls}" data-s="${s.id}" style="right:${colX(s.col)*cell}px;top:${s.row*cell}px;height:${s.text.length*cell}px">${txt}</div>`;
+  }
+  b.innerHTML = h;
+  const wrap = $("boardWrap"); wrap.scrollLeft = wrap.scrollWidth; // 右端（書き出し）から
+  renderTray(); markDrop();
+}
+function renderTray(){
+  $("tray").innerHTML = S.pieces.filter(p=>!p.placed).map(p=>
+    `<div class="piece stk${p.decoyShown?' decoyShown':''}${selPiece===p.id?' sel':''}" data-p="${p.id}">${stack(p.text)}</div>`).join("");
+  const left = S.pieces.filter(p=>!p.placed && !p.decoyShown).length;
+  $("trayHead").textContent = S.done ? "満願。お疲れさまでした。" :
+    `ピース ${left}枚 ― 選んでから盤の枠をタップ（PCはドラッグ可）／空き枠だけタップでのぞき見` + (S.cfg.decoys ? "　※偽ピースが混じっています" : "");
+}
+function markDrop(){
+  document.querySelectorAll(".slot").forEach(el=>el.classList.toggle("canDrop", selPiece!=null && !S.slots[+el.dataset.s].filled));
+}
+
+// ---- 置く ----
+function tryPlace(pid, sid){
+  const p = S.pieces[pid], s = S.slots[sid];
+  if(!p || p.placed || p.decoyShown || !s || s.filled || S.done) return;
+  startClock();
+  if(!p.decoy && p.text === s.text){
+    p.placed = true; s.filled = true; selPiece = null; snd(true);
+    const el = document.querySelector(`.slot[data-s="${sid}"]`);
+    el.className = "slot stk filled"; el.innerHTML = stack(s.text);
+    renderTray(); markDrop(); tick();
+    if(S.slots.every(x=>x.filled)) finish();
+  } else {
+    S.miss++; snd(false);
+    if(p.decoy){ p.decoyShown = true; selPiece = null; renderTray(); markDrop(); }  // 偽物は正体を明かす
+    const pe = document.querySelector(`.piece[data-p="${pid}"]`), se = document.querySelector(`.slot[data-s="${sid}"]`);
+    [pe,se].forEach(e=>{ if(e){ e.classList.remove("bad"); void e.offsetWidth; e.classList.add("bad"); }});
+    tick();
+  }
+}
+
+function finish(){
+  S.done = true; S.elapsed = Math.floor((Date.now()-S.t0)/1000); tick();
+  S.pieces.forEach(p=>{ if(p.decoy) p.decoyShown = true; }); renderTray();
+  const score = S.miss + S.hints;
+  const stars = score===0 ? "★★★" : score<=3 ? "★★☆" : "★☆☆";
+  const prev = store(bestKey());
+  let rec = "";
+  if(!prev || S.miss<prev.miss || (S.miss===prev.miss && S.elapsed<prev.time)){ store(bestKey(),{miss:S.miss,time:S.elapsed}); rec = "<p>自己ベスト更新！</p>"; }
+  showBest();
+  const t = $("sTime").textContent;
+  const nextLv = S.lv<MAXLV ? `<button id="oNext">段階${S.lv+1}へ</button>` : "";
+  openCard(`<h2>満願</h2><div class="stars">${stars}</div>
+    <p>ミス ${S.miss}・ヒント ${S.hints}・時間 ${t}</p>${rec}
+    <div class="btns"><button class="main" id="oRead">🔊 通して読誦</button><button id="oAgain">もう一度</button>${nextLv}<button id="oClose">閉じる</button></div>`);
+  $("oRead").onclick = ()=>{ closeCard(); readAll(); };
+  $("oAgain").onclick = ()=>{ closeCard(); newGame(); };
+  $("oClose").onclick = closeCard;
+  if($("oNext")) $("oNext").onclick = ()=>{ closeCard(); $("lv").value = S.lv+1; newGame(); };
+}
+
+// ---- 操作（タップで選択、マウスはドラッグも） ----
+let drag = null;
+$("tray").addEventListener("pointerdown", e=>{
+  const el = e.target.closest(".piece"); if(!el || S.done) return;
+  drag = {pid:+el.dataset.p, x:e.clientX, y:e.clientY, el, moving:false, mouse:e.pointerType==="mouse"};
+});
+window.addEventListener("pointermove", e=>{
+  if(!drag || !drag.mouse) return;
+  if(!drag.moving && Math.hypot(e.clientX-drag.x, e.clientY-drag.y) > 6){
+    drag.moving = true; drag.el.classList.add("dragging");
+    const g = drag.el.cloneNode(true); g.id = "ghost"; g.classList.remove("dragging","sel"); document.body.appendChild(g);
+  }
+  if(drag.moving){ const g=$("ghost"); g.style.left=e.clientX+"px"; g.style.top=e.clientY+"px"; }
+});
+window.addEventListener("pointerup", e=>{
+  if(!drag) return;
+  const d = drag; drag = null;
+  if(d.moving){
+    $("ghost")?.remove(); d.el.classList.remove("dragging");
+    const slot = document.elementFromPoint(e.clientX, e.clientY)?.closest(".slot");
+    if(slot) tryPlace(d.pid, +slot.dataset.s);
+  } else if(e.target.closest(".piece")===d.el){
+    if(S.pieces[d.pid].decoyShown) return;
+    selPiece = selPiece===d.pid ? null : d.pid; startClock();
+    renderTray(); markDrop();
+  }
+});
+window.addEventListener("pointercancel", ()=>{ if(drag){ $("ghost")?.remove(); drag.el.classList.remove("dragging"); drag=null; }});
+$("board").addEventListener("click", e=>{
+  const slot = e.target.closest(".slot");
+  if(!slot) return;
+  if(selPiece!=null) return tryPlace(selPiece, +slot.dataset.s);
+  // のぞき見：ピース未選択で空き枠をタップ → 1.5秒だけ下敷き全体を表示（ヒント扱い）
+  const s = S.slots[+slot.dataset.s];
+  if(s.filled || S.done || s.mask.every(Boolean) || slot.dataset.peek) return;
+  S.hints++; startClock(); tick();
+  slot.dataset.peek = 1; slot.innerHTML = stack(s.text);
+  setTimeout(()=>{ if(!s.filled){ slot.innerHTML = guideStack(s); delete slot.dataset.peek; } }, 1500);
+});
+
+// ---- ヒント ----
+$("bHint").onclick = ()=>{
+  if(!S || S.done) return;
+  const s = S.slots.find(x=>!x.filled); if(!s) return;
+  S.hints++; startClock(); tick();
+  const p = S.pieces.find(x=>!x.placed && !x.decoy && x.text===s.text);
+  const se = document.querySelector(`.slot[data-s="${s.id}"]`), pe = p && document.querySelector(`.piece[data-p="${p.id}"]`);
+  [se,pe].forEach(el=>{ if(el){ el.classList.remove("hint"); void el.offsetWidth; el.classList.add("hint"); }});
+  pe?.scrollIntoView({block:"nearest", behavior:"smooth"});
+};
+
+// ---- お手本 ----
+$("bModel").onclick = ()=>{
+  const rows = PH.map(([t,y])=>`<tr><td>${t}</td><td class="y">${y}</td></tr>`).join("");
+  openCard(`<h2>${TITLE}</h2><table>${rows}</table><div class="btns"><button id="oClose">閉じる</button></div>`);
+  $("oClose").onclick = closeCard;
+};
+function openCard(html){ $("card").innerHTML = html; $("overlay").classList.add("show"); }
+function closeCard(){ $("overlay").classList.remove("show"); }
+$("overlay").addEventListener("click", e=>{ if(e.target.id==="overlay") closeCard(); });
+
+// ---- 読誦（読みを音声合成＋該当の句を朱で示す） ----
+let readTok = 0;
+function readAll(){
+  stopReading();
+  const tok = ++readTok, synth = window.speechSynthesis;
+  const voice = synth && synth.getVoices().find(v=>/^ja/i.test(v.lang));
+  const units = S.slots.flatMap(s=>s.idxs.map(i=>({sid:s.id, i})));
+  $("caption").classList.add("show");
+  let k = 0;
+  const step = ()=>{
+    if(tok!==readTok) return;
+    document.querySelectorAll(".slot.reading").forEach(el=>el.classList.remove("reading"));
+    if(k>=units.length){ $("caption").classList.remove("show"); return; }
+    const {sid,i} = units[k++];
+    document.querySelector(`.slot[data-s="${sid}"]`)?.classList.add("reading");
+    $("capT").textContent = PH[i][0]; $("capY").textContent = PH[i][1];
+    let advanced = false;
+    const next = ()=>{ if(advanced) return; advanced = true; clearTimeout(fallback); setTimeout(step, 150); };
+    const fallback = setTimeout(next, synth ? 3000 + PH[i][1].length*400 : 700 + PH[i][1].length*260);
+    if(synth){
+      const u = new SpeechSynthesisUtterance(PH[i][1]);
+      u.lang = "ja-JP"; u.rate = 0.85; if(voice) u.voice = voice;
+      u.onend = next; u.onerror = next;
+      synth.speak(u);
+    }
+  };
+  step();
+}
+function stopReading(){
+  readTok++;
+  try{ window.speechSynthesis && speechSynthesis.cancel(); }catch(e){}
+  $("caption").classList.remove("show");
+  document.querySelectorAll(".slot.reading").forEach(el=>el.classList.remove("reading"));
+}
+$("bRead").onclick = readAll;
+$("bStop").onclick = stopReading;
+
+// ---- 効果音（木魚ふう／ミス音） ----
+let actx = null;
+function snd(ok){
+  if(!soundOn) return;
+  try{
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    const o = actx.createOscillator(), g = actx.createGain(), t = actx.currentTime;
+    o.type = ok ? "sine" : "triangle";
+    o.frequency.setValueAtTime(ok ? 620 : 150, t);
+    o.frequency.exponentialRampToValueAtTime(ok ? 380 : 110, t + (ok ? .12 : .2));
+    g.gain.setValueAtTime(.35, t); g.gain.exponentialRampToValueAtTime(.001, t + (ok ? .18 : .25));
+    o.connect(g).connect(actx.destination); o.start(t); o.stop(t+.3);
+  }catch(e){}
+}
+function sndLabel(){ $("bSnd").textContent = soundOn ? "🔔" : "🔕"; }
+$("bSnd").onclick = ()=>{ soundOn = !soundOn; sndLabel(); store("hs_prefs",{lv:+$("lv").value, rng:rngSel.value, snd:soundOn}); };
+sndLabel();
+
+$("bStart").onclick = newGame;
+$("lv").onchange = newGame; rngSel.onchange = newGame;
+let rz; window.addEventListener("resize", ()=>{ clearTimeout(rz); rz = setTimeout(()=>S && render(), 150); });
+if(window.speechSynthesis) speechSynthesis.getVoices();
+newGame();
+</script>
+</body>
+</html>
+
+</body></html>

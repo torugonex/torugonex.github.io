@@ -1,0 +1,370 @@
+<!doctype html><html lang="ja"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>春望拾い</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Old+Mincho:wght@700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ECEEF1; --surface:#F7F8FA; --ink:#1D2330; --muted:#5C6473; --line:#CDD2DA; --accent:#B23F2A;
+  --mincho:"Zen Old Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
+  --gothic:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#12151B; --surface:#1B1F27; --ink:#E4E7EC; --muted:#99A1AE; --line:#303644; --accent:#E36F57;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#12151B; --surface:#1B1F27; --ink:#E4E7EC; --muted:#99A1AE; --line:#303644; --accent:#E36F57;
+  color-scheme:dark;
+}
+html,body{background:var(--bg)}
+body{color:var(--ink);font-family:var(--gothic);font-size:15px;line-height:1.75}
+.wrap{max-width:592px;margin:0 auto;padding:24px 16px 48px;display:grid;gap:16px}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+header h1{font-family:var(--mincho);font-weight:700;font-size:32px;line-height:1.2;margin:0;letter-spacing:.06em}
+header p{margin:2px 0 0;color:var(--muted);font-size:13px}
+#restart{font:inherit;font-size:14px;padding:7px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+#restart:hover{border-color:var(--muted)}
+#restart:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.speed{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--surface)}
+.speed button{font:inherit;font-size:14px;padding:7px 14px;border:0;background:transparent;color:var(--ink);cursor:pointer}
+.speed button+button{border-left:1px solid var(--line)}
+.speed button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.speed button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.hud{display:grid;grid-template-columns:auto 1fr auto auto;gap:6px 18px;align-items:center;font-variant-numeric:tabular-nums}
+.hud .next{display:flex;align-items:center;gap:10px}
+.hud .next b{font-family:var(--mincho);font-size:34px;line-height:1;color:var(--accent);min-width:1em;text-align:center}
+.hud small{display:block;color:var(--muted);font-size:11px;letter-spacing:.08em;line-height:1.3}
+.hud span{font-size:17px;font-weight:500}
+#stage{width:100%;max-width:560px;aspect-ratio:1;border-radius:6px;overflow:hidden;background:#EFECE4;box-shadow:0 1px 2px rgba(20,25,35,.10),0 10px 28px rgba(20,25,35,.14);touch-action:none;cursor:pointer}
+#stage{position:relative}
+#stage canvas{display:block}
+.yomiPop{position:absolute;left:4%;right:4%;bottom:3.5%;padding:6px 12px 8px;border-radius:6px;background:rgba(250,248,242,.94);box-shadow:0 2px 10px rgba(20,25,35,.12);color:#1D2330;font-family:var(--mincho);text-align:center;font-size:clamp(14px,3.9vw,19px);line-height:1.9;opacity:0;transform:translateY(6px);transition:opacity .25s,transform .25s;pointer-events:none}
+.yomiPop.show{opacity:1;transform:none}
+.yomiPop small{display:block;font-family:var(--gothic);font-size:11px;color:#6B6F78;letter-spacing:.1em;line-height:1.5}
+.yomiPop rt{font-family:var(--gothic);font-size:.5em;color:#6B6F78}
+@media (prefers-reduced-motion: reduce){ .yomiPop{transition:none} }
+.how{margin:0;color:var(--muted);max-width:34em}
+details{border-top:1px solid var(--line);padding-top:12px}
+summary{cursor:pointer;color:var(--muted)}
+.vert{writing-mode:vertical-rl;font-family:var(--mincho);font-size:19px;line-height:1.9;letter-spacing:.18em;overflow-x:auto;max-width:100%;margin-top:12px}
+.vert p{margin:0}
+.texts{display:flex;flex-wrap:wrap;gap:20px 36px;align-items:flex-start;margin-top:4px}
+.texts section{min-width:0;max-width:100%}
+.texts h3{margin:12px 0 0;font-size:12px;font-weight:500;color:var(--muted);letter-spacing:.1em}
+.yomi{font-size:17px;line-height:2.3;letter-spacing:.12em}
+.yomi rt{font-family:var(--gothic);font-size:.5em;letter-spacing:0;color:var(--muted)}
+/* 盤面は画面の高さにも収まる大きさにする */
+:root{--stage:max(300px, min(680px, calc(100vh - 170px)))}
+.play{display:grid;gap:18px}
+.main{display:grid;gap:14px;width:100%;max-width:var(--stage)}
+#stage{max-width:var(--stage)}
+.side{display:grid;gap:4px;align-content:start}
+.side h2{margin:0;font-size:12px;font-weight:500;color:var(--muted);letter-spacing:.1em}
+.side .vert{margin-top:6px;min-height:15.5em;width:fit-content}
+.side .yomi p{visibility:hidden;transition:color .6s}
+.side .yomi p.on{visibility:visible}
+.side .yomi p.now{color:var(--accent)}
+@media (min-width:880px){
+  .wrap{max-width:100%;width:fit-content}
+  .play{grid-template-columns:var(--stage) auto;justify-content:center;gap:28px;align-items:start}
+  .side{padding-top:74px}
+  .side .yomi{font-size:20px}
+  .yomiPop{display:none}
+}
+@media (max-width:420px){
+  header h1{font-size:27px}
+  .hud{grid-template-columns:1fr 1fr;}
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>春望拾い</h1>
+      <p>杜甫「春望」八句四十字を、順番どおりに拾い集める</p>
+    </div>
+    <div class="controls">
+      <div class="speed" role="group" aria-label="文字の速さ">
+        <button type="button" data-speed="low">低速</button>
+        <button type="button" data-speed="mid">中速</button>
+        <button type="button" data-speed="high">高速</button>
+      </div>
+      <button id="restart" type="button">最初から</button>
+    </div>
+  </header>
+
+  <div class="play">
+  <div class="main">
+  <div class="hud" aria-live="polite">
+    <div class="next"><div><small>次の字</small></div><b id="hNext">国</b></div>
+    <div><small>句</small><span id="hLine">1 / 8</span></div>
+    <div><small>時間</small><span id="hTime">0.0 秒</span></div>
+    <div><small>ミス</small><span id="hMiss">0</span></div>
+  </div>
+
+  <div id="stage" aria-label="ゲーム画面">
+    <div class="yomiPop" id="yomiPop" aria-live="polite"></div>
+  </div>
+
+  <p class="how">飛んでいる五文字を、句の上から順にタップします。一句そろうと右から縦書きで並び、その句の読み下し文が出たあと、次の句が飛び始めます。読み下し文が出ている間は時間が止まり、タップするとすぐ次の句へ進みます。間違えると、その句の文字が少し速くなります。速さは右上で選べます。変えると最初からになり、自己ベストは速さごとに記録されます。<span id="hBest"></span></p>
+  </div>
+
+  <aside class="side" aria-label="そろった句の読み下し文">
+    <h2>読み下し文　そろった句から右に並びます</h2>
+    <div class="vert yomi" id="yomiList"></div>
+  </aside>
+  </div>
+
+  <details>
+    <summary>春望　全文と読み下し文を見る</summary>
+    <div class="texts">
+      <section>
+        <h3>原文</h3>
+        <div class="vert">
+          <p>国破山河在</p><p>城春草木深</p>
+          <p>感時花濺涙</p><p>恨別鳥驚心</p>
+          <p>烽火連三月</p><p>家書抵万金</p>
+          <p>白頭掻更短</p><p>渾欲不勝簪</p>
+        </div>
+      </section>
+      <section>
+        <h3>読み下し文</h3>
+        <div class="vert yomi">
+          <p>国破れて山河在り</p>
+          <p>城春にして草木深し</p>
+          <p>時に感じては花にも涙を<ruby>濺<rt>そそ</rt></ruby>ぎ</p>
+          <p>別れを恨んでは鳥にも心を驚かす</p>
+          <p><ruby>烽火<rt>ほうか</rt></ruby><ruby>三月<rt>さんげつ</rt></ruby>に連なり</p>
+          <p><ruby>家書<rt>かしょ</rt></ruby><ruby>万金<rt>ばんきん</rt></ruby>に<ruby>抵<rt>あた</rt></ruby>る</p>
+          <p>白頭<ruby>掻<rt>か</rt></ruby>けば更に短く</p>
+          <p><ruby>渾<rt>す</rt></ruby>べて<ruby>簪<rt>しん</rt></ruby>に<ruby>勝<rt>た</rt></ruby>へざらんと欲す</p>
+        </div>
+      </section>
+    </div>
+  </details>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.min.js"></script>
+<script>
+const W = 500; // 論理座標は 500×500 で書き、画面の大きさに合わせて拡大縮小する
+const REDUCE = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+const SP = REDUCE ? 0.6 : 1;
+const POEM = ["国破山河在","城春草木深","感時花濺涙","恨別鳥驚心","烽火連三月","家書抵万金","白頭掻更短","渾欲不勝簪"];
+const MINCHO = "'Zen Old Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', serif";
+const PAPER = [42, 6, 94];
+const INK = [222, 25, 15];
+// 句ごとの色：春の緑、涙の青、烽火の赤、白頭の灰
+const LCOL = [[110,55,48],[110,55,48],[205,60,55],[205,60,55],[8,75,75],[8,75,75],[220,10,48],[220,10,48]];
+const BEST_KEY = 'shunbo-hiroi-best';
+const SPEEDS = { low: 0.4, mid: 0.6, high: 0.85 };
+let speed = 'low';
+function bestKey(){ return speed === 'low' ? BEST_KEY : BEST_KEY + '-' + speed; }
+const YOMI = [
+  '国破れて山河在り',
+  '城春にして草木深し',
+  '時に感じては花にも涙を<ruby>濺<rt>そそ</rt></ruby>ぎ',
+  '別れを恨んでは鳥にも心を驚かす',
+  '<ruby>烽火<rt>ほうか</rt></ruby><ruby>三月<rt>さんげつ</rt></ruby>に連なり',
+  '<ruby>家書<rt>かしょ</rt></ruby><ruby>万金<rt>ばんきん</rt></ruby>に<ruby>抵<rt>あた</rt></ruby>る',
+  '白頭<ruby>掻<rt>か</rt></ruby>けば更に短く',
+  '<ruby>渾<rt>す</rt></ruby>べて<ruby>簪<rt>しん</rt></ruby>に<ruby>勝<rt>た</rt></ruby>へざらんと欲す'
+];
+const PAUSE_FRAMES = 120; // 読み下し文を見せる長さ（約2秒）
+
+function showYomi(li){
+  const el = document.getElementById('yomiPop');
+  el.innerHTML = `<small>第${li + 1}句　${POEM[li]}</small>${YOMI[li]}`;
+  el.classList.add('show');
+  // 横の一覧にも、そろった句を残していく
+  document.querySelectorAll('#yomiList p').forEach((p, i) => {
+    p.classList.toggle('now', i === li);
+    if (i === li) p.classList.add('on');
+  });
+}
+function hideYomi(){ document.getElementById('yomiPop').classList.remove('show'); }
+function resetYomiList(){
+  document.getElementById('yomiList').innerHTML = YOMI.map(y => `<p>${y}</p>`).join('');
+}
+
+let u = 1, stageEl, G;
+
+function sgn(){ return random() < 0.5 ? -1 : 1; }
+function colX(i){ return 450 - i * 57; }
+function rowY(r){ return 95 + r * 62; }
+function wrapAngle(a){ return ((a + PI) % TWO_PI + TWO_PI) % TWO_PI - PI; }
+function loadBest(){ try { const v = parseFloat(localStorage.getItem(bestKey())); return isNaN(v) ? null : v; } catch(e){ return null; } }
+function saveBest(v){ try { localStorage.setItem(bestKey(), String(v)); } catch(e){} }
+
+function move(s, r = 26){
+  s.x += s.vx; s.y += s.vy; s.a += s.va;
+  if (s.x < r){ s.x = r; s.vx = Math.abs(s.vx); } else if (s.x > W - r){ s.x = W - r; s.vx = -Math.abs(s.vx); }
+  if (s.y < r){ s.y = r; s.vy = Math.abs(s.vy); } else if (s.y > W - r){ s.y = W - r; s.vy = -Math.abs(s.vy); }
+}
+function goHome(s, k){ s.x = lerp(s.x, s.hx, k); s.y = lerp(s.y, s.hy, k); s.a = lerp(s.a, 0, k); }
+function glyph(s, size, col, alpha = 1){
+  push(); translate(s.x, s.y); rotate(s.a); noStroke();
+  fill(col[0], col[1], col[2], alpha); textSize(size); text(s.c, 0, 0);
+  pop();
+}
+function caption(str, y, size, col = INK, alpha = 1){
+  push(); noStroke(); fill(col[0], col[1], col[2], alpha); textSize(size); text(str, W/2, y); pop();
+}
+
+/* ---------- ゲームの状態 ---------- */
+function newGame(){
+  G = { phase: 'ready', li: 0, next: 0, miss: 0, start: 0, end: null, pauseT: 0, pauseStartMs: 0, pausedMs: 0, settled: [], cs: [], best: loadBest() };
+  hideYomi();
+  resetYomiList();
+  spawn(0);
+  updateHud();
+}
+function spawn(li){
+  const f = SPEEDS[speed] * SP; // 速さは最後まで同じ
+  G.cs = [...POEM[li]].map((c, r) => ({
+    c, x: random(40, W - 40), y: random(40, W - 40),
+    vx: sgn() * random(1.2, 4) * f, vy: sgn() * random(1.2, 4) * f,
+    a: 0, va: random(-0.05, 0.05) * f,
+    hx: colX(li), hy: rowY(r), placed: false, flash: 0
+  }));
+  G.next = 0;
+}
+function elapsed(){
+  if (G.phase === 'ready') return 0;
+  const now = G.end != null ? G.end : millis();
+  const paused = G.pausedMs + (G.phase === 'pause' ? now - G.pauseStartMs : 0); // 読み下し表示中は数えない
+  return (now - G.start - paused) / 1000;
+}
+
+function tapAt(x, y){
+  if (G.phase === 'ready'){ G.phase = 'play'; G.start = millis(); updateHud(); return; }
+  if (G.phase === 'done'){ newGame(); return; }
+  if (G.phase === 'pause'){ finishLine(); return; }
+  if (G.phase !== 'play') return;
+
+  let hit = null, best = 46;
+  for (const s of G.cs){ if (s.placed) continue; const d = dist(x, y, s.x, s.y); if (d < best){ best = d; hit = s; } }
+  if (!hit) return;
+
+  if (hit.c === POEM[G.li][G.next]){
+    hit.placed = true; hit.a = wrapAngle(hit.a); G.next++;
+    if (G.next === 5){ G.phase = 'pause'; G.pauseT = 0; G.pauseStartMs = millis(); showYomi(G.li); }
+  } else {
+    G.miss++; hit.flash = 18;
+    for (const s of G.cs){ if (s.placed) continue; const cap = 10 * SPEEDS[speed]; s.vx = constrain(s.vx * 1.1, -cap, cap); s.vy = constrain(s.vy * 1.1, -cap, cap); }
+  }
+  updateHud();
+}
+
+function finishLine(){
+  G.pausedMs += millis() - G.pauseStartMs;
+  hideYomi();
+  G.cs.forEach(s => { s.x = s.hx; s.y = s.hy; s.a = 0; G.settled.push(s); });
+  G.cs = [];
+  G.li++;
+  if (G.li >= 8){
+    G.phase = 'done'; G.end = millis();
+    const t = elapsed();
+    G.newBest = G.best == null || t < G.best;
+    if (G.newBest){ G.best = t; saveBest(t); }
+  } else {
+    spawn(G.li); G.phase = 'play';
+  }
+  updateHud();
+}
+
+/* ---------- 表示 ---------- */
+function updateHud(){
+  const done = G.phase === 'done';
+  document.getElementById('hNext').textContent = done ? '完' : POEM[Math.min(G.li, 7)][Math.min(G.next, 4)];
+  document.getElementById('hLine').textContent = `${Math.min(G.li + 1, 8)} / 8`;
+  document.getElementById('hTime').textContent = `${elapsed().toFixed(1)} 秒`;
+  document.getElementById('hMiss').textContent = String(G.miss);
+  document.getElementById('hBest').textContent = G.best != null ? `　自己ベスト：${G.best.toFixed(1)} 秒` : '';
+}
+
+function drawGame(){
+  background(...PAPER);
+
+  // 並べ終わった句
+  for (const s of G.settled) glyph(s, 40, INK, 0.9);
+
+  // 今の句の枠
+  if (G.phase !== 'done'){
+    push(); rectMode(CENTER); noFill(); stroke(42, 14, 76); strokeWeight(1.2);
+    for (let r = 0; r < 5; r++) rect(colX(G.li), rowY(r), 50, 54, 4);
+    pop();
+  }
+
+  // 今の句の文字
+  const k = G.phase === 'pause' ? 0.2 : 0.15;
+  for (const s of G.cs){
+    if (s.placed){ goHome(s, k); glyph(s, 40, INK); }
+    else {
+      move(s);
+      if (s.flash > 0) s.flash--;
+      glyph(s, 48, s.flash > 0 ? [2, 80, 85] : LCOL[G.li]);
+    }
+  }
+
+  if (G.phase === 'pause' && ++G.pauseT > PAUSE_FRAMES) finishLine();
+
+  if (G.phase === 'ready'){
+    push(); noStroke(); fill(42, 10, 99, 0.88); rect(W/2 - 150, 395, 300, 76, 8); pop();
+    caption('タップしてはじめる', 422, 22);
+    caption('最初の字は「国」', 452, 15, [220, 12, 40]);
+  }
+  if (G.phase === 'done'){
+    caption(`完成　${elapsed().toFixed(1)} 秒　ミス ${G.miss}`, 410, 22);
+    caption(G.newBest ? '自己ベスト更新！' : `自己ベスト ${G.best.toFixed(1)} 秒`, 442, 16, G.newBest ? [8, 75, 75] : [220, 12, 40]);
+    caption('タップでもう一度', 470, 14, [220, 12, 40]);
+  }
+}
+
+/* ---------- p5 ---------- */
+function setup(){
+  stageEl = document.getElementById('stage');
+  const sz = stageEl.clientWidth || 360; u = sz / W;
+  const cnv = createCanvas(sz, sz); cnv.parent(stageEl);
+  pixelDensity(Math.min(2, displayDensity()));
+  colorMode(HSB, 360, 100, 100, 1);
+
+  cnv.elt.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    const r = cnv.elt.getBoundingClientRect();
+    tapAt((e.clientX - r.left) / r.width * W, (e.clientY - r.top) / r.height * W);
+  });
+  document.getElementById('restart').addEventListener('click', newGame);
+  try { const v = localStorage.getItem('shunbo-hiroi-speed'); if (SPEEDS[v]) speed = v; } catch(e){}
+  document.querySelectorAll('.speed button').forEach(b => {
+    b.setAttribute('aria-pressed', String(b.dataset.speed === speed));
+    b.addEventListener('click', () => {
+      speed = b.dataset.speed;
+      document.querySelectorAll('.speed button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+      try { localStorage.setItem('shunbo-hiroi-speed', speed); } catch(e){}
+      newGame();
+    });
+  });
+
+  if (document.fonts) document.fonts.load("700 40px 'Zen Old Mincho'", POEM.join('') + 'タップしてはじめる最初の字は「」完成秒ミス自己ベスト更新！でもう一度').catch(() => {});
+
+  newGame();
+}
+
+function draw(){
+  textFont(MINCHO); textStyle(BOLD); textAlign(CENTER, CENTER); rectMode(CORNER);
+  push(); scale(u); drawGame(); pop();
+  if (G.phase === 'play' && frameCount % 6 === 0) updateHud();
+}
+
+function windowResized(){
+  const sz = stageEl.clientWidth;
+  if (sz && Math.abs(sz - width) > 1){ resizeCanvas(sz, sz); u = sz / W; }
+}
+</script>
+
+</body></html>

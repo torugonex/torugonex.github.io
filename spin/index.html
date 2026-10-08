@@ -1,0 +1,414 @@
+<!doctype html><html lang="ja"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found]){display:none!important}</style></head><body>
+<title>十連回転体</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --bg:#101317;
+    --grid-dot: rgba(255,255,255,0.055);
+    --ink:#eef0f2;
+    --ink-dim:#868c96;
+    --accent:#e8b23d;
+    --placard-bg: rgba(16,19,23,0.62);
+    --placard-border: rgba(255,255,255,0.09);
+    --cream:#f2ede2;
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    overflow:hidden;
+    height:100vh;
+    font-family:'JetBrains Mono', ui-monospace, monospace;
+  }
+
+  #stage{
+    position:relative;
+    width:100vw;
+    height:100vh;
+    background:
+      radial-gradient(circle at 1px 1px, var(--grid-dot) 1px, transparent 1px),
+      radial-gradient(ellipse at 50% 40%, #1a1e24 0%, var(--bg) 68%);
+    background-size:28px 28px, 100% 100%;
+  }
+
+  .placard{
+    position:absolute;
+    left:22px;
+    top:22px;
+    max-width:min(420px, 62vw);
+    padding:16px 40px 16px 18px;
+    background:var(--placard-bg);
+    border:1px solid var(--placard-border);
+    border-radius:2px;
+    backdrop-filter:blur(6px);
+    z-index:10;
+  }
+
+  .placard-close{
+    position:absolute;
+    top:8px;
+    right:8px;
+    width:22px;
+    height:22px;
+    border:1px solid var(--placard-border);
+    border-radius:2px;
+    background:transparent;
+    color:var(--ink-dim);
+    font-family:'JetBrains Mono', ui-monospace, monospace;
+    font-size:13px;
+    line-height:1;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .placard-close:hover{
+    color:var(--ink);
+    border-color:var(--accent);
+  }
+
+  .placard.dismissed{
+    padding-bottom:12px;
+  }
+  .placard.dismissed h1,
+  .placard.dismissed p,
+  .placard.dismissed .placard-close{
+    display:none;
+  }
+  .placard.dismissed .readout{
+    margin-top:0;
+    padding-top:0;
+    border-top:none;
+  }
+
+  .placard h1{
+    margin:0 0 6px;
+    font-family:'Syne', sans-serif;
+    font-weight:800;
+    font-size:22px;
+    letter-spacing:0.01em;
+    color:var(--ink);
+    text-wrap:balance;
+  }
+
+  .placard p{
+    margin:0;
+    font-family:'Syne', sans-serif;
+    font-weight:700;
+    font-size:13px;
+    line-height:1.55;
+    color:var(--ink-dim);
+    text-wrap:balance;
+  }
+
+  .placard .readout{
+    margin-top:10px;
+    padding-top:10px;
+    border-top:1px dashed var(--placard-border);
+    font-size:11px;
+    letter-spacing:0.06em;
+    color:var(--accent);
+    display:flex;
+    gap:14px;
+    flex-wrap:wrap;
+  }
+
+  .set{
+    position:absolute;
+    left:0;
+    top:0;
+    will-change:transform;
+  }
+
+  .square{
+    position:relative;
+    width:100%;
+    height:100%;
+    background:var(--sq);
+    border:2px solid var(--sq-border);
+    border-radius:6px;
+    box-shadow:0 6px 22px -8px rgba(0,0,0,0.55);
+    animation-name:spin;
+    animation-timing-function:linear;
+    animation-iteration-count:infinite;
+  }
+
+  .orbit-point{
+    position:absolute;
+    width:1px;
+    height:1px;
+    animation-name:orbit;
+    animation-timing-function:linear;
+    animation-iteration-count:infinite;
+  }
+
+  .triangle{
+    position:absolute;
+    animation-name:spin;
+    animation-timing-function:linear;
+    animation-iteration-count:infinite;
+  }
+
+  @keyframes spin{
+    from{transform:rotate(0deg);}
+    to{transform:rotate(360deg);}
+  }
+  @keyframes orbit{
+    from{offset-distance:0%;}
+    to{offset-distance:100%;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .square, .orbit-point, .triangle{ animation-duration:40s !important; }
+  }
+
+  .credit{
+    position:absolute;
+    right:18px;
+    bottom:14px;
+    font-size:10px;
+    letter-spacing:0.08em;
+    color:var(--ink-dim);
+    opacity:0.7;
+    z-index:10;
+  }
+
+  .controls{
+    position:absolute;
+    left:22px;
+    bottom:14px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    padding:12px 16px;
+    background:var(--placard-bg);
+    border:1px solid var(--placard-border);
+    border-radius:2px;
+    backdrop-filter:blur(6px);
+    z-index:10;
+    font-family:'JetBrains Mono', ui-monospace, monospace;
+    font-size:11px;
+    color:var(--ink-dim);
+    letter-spacing:0.04em;
+  }
+  .controls .row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .controls .row .label{
+    width:64px;
+    flex-shrink:0;
+  }
+  .controls .row .val{
+    width:40px;
+    text-align:right;
+    color:var(--accent);
+    font-variant-numeric:tabular-nums;
+    flex-shrink:0;
+  }
+  .controls input[type=range]{
+    flex:1;
+    min-width:120px;
+    accent-color:var(--accent);
+    height:4px;
+    cursor:pointer;
+    background:transparent;
+  }
+</style>
+
+<div id="stage">
+  <div class="placard" id="placard">
+    <button class="placard-close" id="placardClose" aria-label="タイトルと解説を閉じる" title="タイトルと解説を閉じる">×</button>
+    <h1>十連回転体</h1>
+    <p>正方形がそれぞれの速さで自転し、内側では正三角形が円軌道を公転しながら逆回転する。下のスライダーでセット数と速度を変えられる。</p>
+    <div class="readout" id="readout">SETS 10&nbsp;&nbsp;/&nbsp;&nbsp;SPEED —</div>
+  </div>
+
+  <div class="controls" id="controls">
+    <div class="row">
+      <span class="label">セット数</span>
+      <input type="range" id="countSlider" min="1" max="20" step="1" value="10">
+      <span class="val" id="countVal">10</span>
+    </div>
+    <div class="row">
+      <span class="label">速度</span>
+      <input type="range" id="speedSlider" min="0.2" max="3" step="0.1" value="1">
+      <span class="val" id="speedVal">×1.0</span>
+    </div>
+  </div>
+
+  <div class="credit">DRAG-FREE ORBIT · CSS + REQUESTANIMATIONFRAME</div>
+</div>
+
+<script>
+(function(){
+  var stage = document.getElementById('stage');
+  var readout = document.getElementById('readout');
+  var placard = document.getElementById('placard');
+  var placardClose = document.getElementById('placardClose');
+  var countSlider = document.getElementById('countSlider');
+  var countVal = document.getElementById('countVal');
+  var speedSlider = document.getElementById('speedSlider');
+  var speedVal = document.getElementById('speedVal');
+
+  placardClose.addEventListener('click', function(){
+    placard.classList.add('dismissed');
+  });
+
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var palette = [
+    { sq:'#3f6fd8', border:'#7fa2ec' },
+    { sq:'#e8b23d', border:'#f3cd7c' },
+    { sq:'#2f9e8f', border:'#6fc7bb' },
+    { sq:'#d1483c', border:'#e58077' },
+    { sq:'#8a5fd1', border:'#b393e6' }
+  ];
+
+  function rand(min, max){ return Math.random() * (max - min) + min; }
+  function pick(arr, i){ return arr[i % arr.length]; }
+
+  var sets = [];
+  var speedMultiplier = parseFloat(speedSlider.value);
+
+  function updateReadout(n){
+    if (!sets.length){
+      readout.textContent = 'SETS ' + n + '   /   SPEED —';
+      return;
+    }
+    var mags = sets.map(function(s){
+      return Math.hypot(s.vx0, s.vy0) * speedMultiplier;
+    });
+    var lo = Math.round(Math.min.apply(null, mags));
+    var hi = Math.round(Math.max.apply(null, mags));
+    readout.textContent = 'SETS ' + n + '   /   SPEED ' +
+      (reduced ? '0 (REDUCED MOTION)' : lo + '–' + hi + ' px/s');
+  }
+
+  function place(s){
+    s.el.style.transform = 'translate3d(' + s.x + 'px,' + s.y + 'px,0)';
+  }
+
+  function buildSets(n){
+    var old = stage.querySelectorAll('.set');
+    for (var k = 0; k < old.length; k++) old[k].remove();
+    sets = [];
+
+    var w = stage.clientWidth, h = stage.clientHeight;
+
+    var orbitDirs = [];
+    for (var d = 0; d < n; d++) orbitDirs.push(d < Math.round(n / 2) ? 'normal' : 'reverse');
+    for (var sh = orbitDirs.length - 1; sh > 0; sh--){
+      var j = Math.floor(Math.random() * (sh + 1));
+      var tmp = orbitDirs[sh]; orbitDirs[sh] = orbitDirs[j]; orbitDirs[j] = tmp;
+    }
+
+    for (var i = 0; i < n; i++){
+      var size = rand(58, 138);
+      var orbitR = size * 0.32;
+      var triSize = size * 0.28;
+      var col = pick(palette, i);
+      var triFill = 'color-mix(in srgb, #f2ede2 82%, ' + col.sq + ' 18%)';
+
+      var el = document.createElement('div');
+      el.className = 'set';
+      el.style.width = size + 'px';
+      el.style.height = size + 'px';
+
+      var sqDur = rand(6, 17);
+      var sqDir = Math.random() < 0.5 ? 'normal' : 'reverse';
+      var orbitDur = rand(1.6, 5.2);
+      var orbitDir = orbitDirs[i];
+      var triDur = rand(1.3, 4.2);
+      var triDir = orbitDir === 'normal' ? 'reverse' : 'normal';
+
+      var half = triSize / 2;
+      el.innerHTML =
+        '<div class="square" style="--sq:' + col.sq + ';--sq-border:' + col.border +
+          ';animation-duration:' + sqDur + 's;animation-direction:' + sqDir + '">' +
+          '<div class="orbit-point" style="offset-path:circle(' + orbitR + 'px at 50% 50%);' +
+            'animation-duration:' + orbitDur + 's;animation-direction:' + orbitDir + '">' +
+            '<svg class="triangle" width="' + triSize + '" height="' + triSize +
+              '" viewBox="0 0 ' + triSize + ' ' + triSize +
+              '" style="left:' + (-half) + 'px;top:' + (-half) + 'px;' +
+              'animation-duration:' + triDur + 's;animation-direction:' + triDir + '">' +
+              '<polygon points="' +
+                (triSize*0.5) + ',' + (triSize*0.08) + ' ' +
+                (triSize*0.92) + ',' + (triSize*0.84) + ' ' +
+                (triSize*0.08) + ',' + (triSize*0.84) +
+              '" fill="' + triFill + '" />' +
+            '</svg>' +
+          '</div>' +
+        '</div>';
+
+      stage.appendChild(el);
+
+      var speed = reduced ? 0 : (16 + Math.pow(Math.random(), 0.55) * (150 - 16));
+      var angle = rand(0, Math.PI * 2);
+      var vx0 = Math.cos(angle) * speed;
+      var vy0 = Math.sin(angle) * speed;
+
+      var x, y;
+      if (reduced){
+        var perRow = Math.min(n, 8);
+        var col5 = i % perRow, row5 = Math.floor(i / perRow);
+        x = 60 + col5 * Math.max(40, (w - 120) / Math.max(1, perRow - 1));
+        y = h * 0.32 + row5 * (size + 40);
+      } else {
+        x = rand(0, Math.max(1, w - size));
+        y = rand(0, Math.max(1, h - size));
+      }
+
+      sets.push({ el:el, size:size, x:x, y:y, vx0:vx0, vy0:vy0 });
+    }
+
+    sets.forEach(place);
+    updateReadout(n);
+  }
+
+  countSlider.addEventListener('input', function(){
+    var n = parseInt(countSlider.value, 10);
+    countVal.textContent = n;
+    buildSets(n);
+  });
+
+  speedSlider.addEventListener('input', function(){
+    speedMultiplier = parseFloat(speedSlider.value);
+    speedVal.textContent = '×' + speedMultiplier.toFixed(1);
+    updateReadout(sets.length);
+  });
+
+  buildSets(parseInt(countSlider.value, 10));
+
+  if (reduced) return;
+
+  var last = performance.now();
+  function frame(now){
+    var dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    var cw = stage.clientWidth, ch = stage.clientHeight;
+
+    for (var i = 0; i < sets.length; i++){
+      var s = sets[i];
+      s.x += s.vx0 * speedMultiplier * dt;
+      s.y += s.vy0 * speedMultiplier * dt;
+
+      var maxX = cw - s.size, maxY = ch - s.size;
+      if (s.x < 0){ s.x = 0; s.vx0 = Math.abs(s.vx0); }
+      else if (s.x > maxX){ s.x = maxX; s.vx0 = -Math.abs(s.vx0); }
+      if (s.y < 0){ s.y = 0; s.vy0 = Math.abs(s.vy0); }
+      else if (s.y > maxY){ s.y = maxY; s.vy0 = -Math.abs(s.vy0); }
+
+      place(s);
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+
+</body></html>

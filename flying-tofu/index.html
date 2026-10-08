@@ -1,0 +1,406 @@
+<!doctype html><html lang="ja"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Flying 杜甫詩</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Old+Mincho:wght@700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ECEEF1; --surface:#F7F8FA; --ink:#1D2330; --muted:#5C6473; --line:#CDD2DA; --accent:#B23F2A;
+  --mincho:"Zen Old Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
+  --gothic:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#12151B; --surface:#1B1F27; --ink:#E4E7EC; --muted:#99A1AE; --line:#303644; --accent:#E36F57;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#12151B; --surface:#1B1F27; --ink:#E4E7EC; --muted:#99A1AE; --line:#303644; --accent:#E36F57;
+  color-scheme:dark;
+}
+html,body{background:var(--bg)}
+body{color:var(--ink);font-family:var(--gothic);font-size:15px;line-height:1.75}
+.wrap{max-width:592px;margin:0 auto;padding:28px 16px 48px;display:grid;gap:20px}
+header h1{font-family:var(--mincho);font-weight:700;font-size:32px;line-height:1.2;margin:0;letter-spacing:.02em;text-wrap:balance}
+header p{margin:6px 0 0;color:var(--muted);font-size:13px;letter-spacing:.04em}
+.tabs{display:flex;flex-wrap:wrap;gap:6px}
+.tabs button{font:inherit;font-size:14px;line-height:1.4;padding:7px 13px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.tabs button:hover{border-color:var(--muted)}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tabs button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#stage{width:100%;max-width:560px;aspect-ratio:1;border-radius:6px;overflow:hidden;background:#EFECE4;box-shadow:0 1px 2px rgba(20,25,35,.10),0 10px 28px rgba(20,25,35,.14);touch-action:none;cursor:pointer}
+#stage canvas{display:block}
+.info{display:grid;gap:4px}
+.info h2{font-family:var(--mincho);font-weight:700;font-size:21px;margin:0;line-height:1.3}
+.info p{margin:0;max-width:34em}
+#statusLine{color:var(--accent);font-weight:500;font-variant-numeric:tabular-nums;min-height:1.75em}
+.poem{border-top:1px solid var(--line);padding-top:18px;display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap}
+.poem h2{font-family:var(--mincho);font-size:17px;margin:0;writing-mode:vertical-rl;letter-spacing:.2em}
+.poem h2 span{color:var(--muted);font-size:14px}
+.vert{writing-mode:vertical-rl;font-family:var(--mincho);font-size:19px;line-height:1.9;letter-spacing:.18em;overflow-x:auto;max-width:100%}
+.vert p{margin:0}
+footer{color:var(--muted);font-size:12px}
+@media (max-width:420px){ header h1{font-size:27px} }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Flying 杜甫詩</h1>
+    <p>国破山河在　城春草木深 ― 杜甫「春望」を飛ばす六つのバリエーション</p>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="バリエーション">
+    <button role="tab" data-mode="gather">集合と散開</button>
+    <button role="tab" data-mode="ink">墨と和紙</button>
+    <button role="tab" data-mode="petals">落花</button>
+    <button role="tab" data-mode="full">春望全篇</button>
+    <button role="tab" data-mode="game">拾い集め</button>
+    <button role="tab" data-mode="sound">琴の音</button>
+  </nav>
+
+  <div id="stage" aria-label="アニメーション"></div>
+
+  <section class="info" aria-live="polite">
+    <h2 id="modeName"></h2>
+    <p id="modeDesc"></p>
+    <p id="statusLine"></p>
+  </section>
+
+  <section class="poem" aria-label="春望 全文">
+    <h2>春望　<span>杜甫</span></h2>
+    <div class="vert">
+      <p>国破山河在</p><p>城春草木深</p>
+      <p>感時花濺涙</p><p>恨別鳥驚心</p>
+      <p>烽火連三月</p><p>家書抵万金</p>
+      <p>白頭掻更短</p><p>渾欲不勝簪</p>
+    </div>
+  </section>
+
+  <footer>p5.js 1.9.4 で描いています。editor.p5js.org でも同じ書き方で動きます。</footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.min.js"></script>
+<script>
+const W = 500; // 論理座標は 500×500 で書き、画面の大きさに合わせて拡大縮小する
+const REDUCE = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+const SP = REDUCE ? 0.45 : 1;
+const L1 = "国破山河在城春草木深";
+const POEM = ["国破山河在","城春草木深","感時花濺涙","恨別鳥驚心","烽火連三月","家書抵万金","白頭掻更短","渾欲不勝簪"];
+const MINCHO = "'Zen Old Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', serif";
+const PAPER = [42, 6, 94];
+const INK = [222, 25, 15];
+const HIRA = [0, 2, 3, 7, 8, 12, 14, 15, 19, 20]; // 平調子ふうの音階（半音）
+
+let u = 1, cur = null, curKey = 'gather', stageEl, statusEl;
+let windV = 0, lastPX = null;
+let ac = null, master = null, audioOn = false;
+
+/* ---------- 共通の道具 ---------- */
+function sgn(){ return random() < 0.5 ? -1 : 1; }
+function vel(max = 4){ return sgn() * random(1.2, max) * SP; }
+function home10(i){ const col = i < 5 ? 0 : 1; return { x: W/2 + 40 - col*80, y: 110 + (i%5)*70 }; }
+function flyer(c, home, col){
+  return { c, x: random(40, W-40), y: random(40, W-40), vx: vel(), vy: vel(),
+           a: 0, va: random(-0.05, 0.05) * SP, hx: home ? home.x : 0, hy: home ? home.y : 0, col };
+}
+function wrapAngle(a){ return ((a + PI) % TWO_PI + TWO_PI) % TWO_PI - PI; }
+function move(s, r = 24){
+  s.x += s.vx; s.y += s.vy; s.a += s.va;
+  let hit = false;
+  if (s.x < r){ s.x = r; s.vx = Math.abs(s.vx); hit = true; }
+  else if (s.x > W - r){ s.x = W - r; s.vx = -Math.abs(s.vx); hit = true; }
+  if (s.y < r){ s.y = r; s.vy = Math.abs(s.vy); hit = true; }
+  else if (s.y > W - r){ s.y = W - r; s.vy = -Math.abs(s.vy); hit = true; }
+  return hit;
+}
+function goHome(s, k = 0.08){ s.x = lerp(s.x, s.hx, k); s.y = lerp(s.y, s.hy, k); s.a = lerp(s.a, 0, k); }
+function glyph(s, size, col, alpha = 1){
+  push(); translate(s.x, s.y); rotate(s.a); noStroke();
+  fill(col[0], col[1], col[2], alpha); textSize(size); text(s.c, 0, 0);
+  pop();
+}
+function caption(str, y, col, alpha = 1, size = 17){
+  push(); textStyle(NORMAL); noStroke(); fill(col[0], col[1], col[2], alpha); textSize(size); text(str, W/2, y); pop();
+}
+function loadBest(){ try { const v = parseFloat(localStorage.getItem('flying-tofu-best')); return isNaN(v) ? null : v; } catch(e){ return null; } }
+function saveBest(v){ try { localStorage.setItem('flying-tofu-best', String(v)); } catch(e){} }
+
+/* ---------- 音 ---------- */
+function toggleAudio(){
+  if (!ac){
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    ac = new AC(); master = ac.createGain(); master.gain.value = 0.45; master.connect(ac.destination);
+  }
+  if (ac.state === 'suspended') ac.resume();
+  audioOn = !audioOn;
+}
+function pluck(f){
+  if (!audioOn || !ac) return;
+  const t = ac.currentTime;
+  [[f, 0.16, 'triangle'], [f*2, 0.05, 'sine']].forEach(([fr, g0, type]) => {
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.type = type; o.frequency.value = fr;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(g0, t + 0.006);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 1.6);
+    o.connect(g); g.connect(master); o.start(t); o.stop(t + 1.7);
+  });
+}
+
+/* ---------- 六つのモード ---------- */
+const MODES = {
+  gather: {
+    name: '集合と散開',
+    desc: '飛び回る十字が、タップすると縦書きの詩に戻ります。もう一度タップすると、また散らばります。',
+    init(){ this.g = false; this.t = 0; this.cs = [...L1].map((c, i) => flyer(c, home10(i), [random(360), 65, 70])); },
+    draw(){
+      background(...PAPER);
+      this.t = this.g ? Math.min(this.t + 1, 60) : 0;
+      for (const s of this.cs){ if (this.g) goHome(s); else move(s); glyph(s, 44, s.col); }
+      if (this.g) caption('杜甫「春望」より', 462, [0, 0, 35], this.t / 60, 15);
+    },
+    tap(){ this.g = !this.g; if (this.g) this.cs.forEach(s => s.a = wrapAngle(s.a)); },
+    status(){ return this.g ? 'タップで散らばる' : 'タップで詩に戻る'; }
+  },
+
+  ink: {
+    name: '墨と和紙',
+    desc: '文字の通った跡が、墨のにじみのように紙に残ります。朱の一字は「春」です。タップすると紙を替え、文字がタップした所から離れていきます。',
+    init(){
+      this.fresh = true;
+      this.cs = [...L1].map(c => {
+        const s = flyer(c, null, c === '春' ? [8, 78, 76] : INK);
+        s.vx *= 0.6; s.vy *= 0.6; s.va *= 0.6; return s;
+      });
+    },
+    draw(){
+      if (this.fresh){ background(...PAPER); this.fresh = false; }
+      noStroke(); fill(PAPER[0], PAPER[1], PAPER[2], 0.045); rect(0, 0, W, W);
+      for (const s of this.cs){ move(s); glyph(s, 46, s.col, 0.85); }
+    },
+    tap(x, y){
+      this.fresh = true;
+      for (const s of this.cs){
+        const d = Math.max(dist(x, y, s.x, s.y), 1), m = random(1.4, 2.8) * SP;
+        s.vx = (s.x - x) / d * m; s.vy = (s.y - y) / d * m;
+      }
+    },
+    onResize(){ this.fresh = true; },
+    status(){ return 'タップで紙を替える'; }
+  },
+
+  petals: {
+    name: '落花',
+    desc: '第二句「感時花濺涙　恨別鳥驚心」が、花びらと一緒に舞い落ちます。指やマウスを横に動かすと風が吹きます。',
+    init(){
+      windV = 0;
+      this.cs = [..."感時花濺涙恨別鳥驚心"].map(c => ({
+        c, x: random(30, W-30), y: random(-W, W), vy: random(0.6, 1.2) * SP, ph: random(TWO_PI),
+        a: random(-0.5, 0.5), va: random(-0.02, 0.02) * SP,
+        col: c === '花' ? [345, 60, 72] : c === '涙' ? [205, 62, 62] : [225, 22, 28]
+      }));
+      this.ps = Array.from({ length: 42 }, () => ({
+        x: random(W), y: random(-W, W), vy: random(0.8, 1.8) * SP, ph: random(TWO_PI),
+        a: random(TWO_PI), va: random(-0.05, 0.05) * SP, s: random(6, 11)
+      }));
+    },
+    fall(o){
+      o.y += o.vy;
+      o.x += Math.sin(frameCount * 0.02 + o.ph) * 0.5 * SP + windV;
+      o.a += o.va + windV * 0.01;
+      if (o.y > W + 30){ o.y = -30; o.x = random(W); }
+      if (o.x < -30) o.x += W + 60; else if (o.x > W + 30) o.x -= W + 60;
+    },
+    draw(){
+      background(340, 5, 97);
+      windV *= 0.965;
+      noStroke();
+      for (const p of this.ps){
+        this.fall(p);
+        push(); translate(p.x, p.y); rotate(p.a); fill(345, 24, 98, 0.9); ellipse(0, 0, p.s, p.s * 0.6); pop();
+      }
+      for (const s of this.cs){ this.fall(s); glyph(s, 42, s.col); }
+    },
+    tap(x){ windV += x < W/2 ? 4 : -4; },
+    status(){ return Math.abs(windV) > 0.3 ? (windV > 0 ? '風 → 東へ' : '風 ← 西へ') : '横になでると風が吹く／タップで突風'; }
+  },
+
+  full: {
+    name: '春望全篇',
+    desc: '八句四十字を一句ずつ飛ばし、右から縦書きで並べていきます。色は春の緑、涙の青、烽火の赤、白頭の白。タップすると今の句をすぐ並べます。',
+    cols: [[110,48,78],[110,48,78],[205,42,90],[205,42,90],[12,78,96],[12,78,96],[40,5,96],[40,5,96]],
+    init(){ this.settled = []; this.li = 0; this.spawn(); },
+    spawn(){
+      const i = this.li; this.phase = 'fly'; this.t = 0;
+      this.cs = [...POEM[i]].map((c, r) => flyer(c, { x: 450 - i*57, y: 95 + r*62 }, this.cols[i]));
+    },
+    gather(){ this.phase = 'gather'; this.cs.forEach(s => s.a = wrapAngle(s.a)); },
+    draw(){
+      background(232, 38, 13);
+      for (const s of this.settled) glyph(s, 36, s.col, 0.9);
+      if (this.phase === 'done'){
+        this.t++;
+        caption('春望　杜甫', 440, [40, 5, 90], Math.min(this.t / 60, 1), 18);
+        if (this.t > 420) this.init();
+        return;
+      }
+      if (this.phase === 'fly'){
+        for (const s of this.cs){ move(s); glyph(s, 38, s.col); }
+        if (++this.t > 240) this.gather();
+      } else {
+        let done = true;
+        for (const s of this.cs){ goHome(s, 0.07); glyph(s, 36, s.col); if (dist(s.x, s.y, s.hx, s.hy) > 0.6) done = false; }
+        if (done){
+          this.cs.forEach(s => { s.x = s.hx; s.y = s.hy; s.a = 0; this.settled.push(s); });
+          this.li++;
+          if (this.li >= 8){ this.phase = 'done'; this.t = 0; this.cs = []; }
+          else this.spawn();
+        }
+      }
+    },
+    tap(){ if (this.phase === 'fly') this.gather(); else if (this.phase === 'done') this.init(); },
+    status(){
+      if (this.phase === 'done') return '全八句がそろいました。タップでもう一度';
+      return `第${this.li + 1}句「${POEM[this.li]}」　タップで並べる`;
+    }
+  },
+
+  game: {
+    name: '拾い集め',
+    desc: '国 → 破 → 山 … と、詩の順番どおりに文字をタップしてください。間違えると、残りの文字が少し速くなります。',
+    init(){
+      this.cs = [...L1].map((c, i) => {
+        const s = flyer(c, home10(i), [random(360), 60, 68]);
+        s.vx *= 0.4; s.vy *= 0.4; s.va *= 0.4; // ゲームはゆっくりから始める
+        s.placed = false; s.flash = 0; return s;
+      });
+      this.next = 0; this.miss = 0; this.start = millis(); this.end = null; this.best = loadBest();
+    },
+    draw(){
+      background(...PAPER);
+      push(); rectMode(CENTER); noFill(); stroke(42, 12, 78); strokeWeight(1.2);
+      for (let i = 0; i < 10; i++){ const h = home10(i); rect(h.x, h.y, 58, 58, 4); }
+      pop();
+      for (const s of this.cs){
+        if (s.placed){ goHome(s, 0.15); glyph(s, 44, INK); }
+        else { move(s, 26); if (s.flash > 0) s.flash--; glyph(s, 44, s.flash > 0 ? [2, 80, 85] : s.col); }
+      }
+      if (this.end != null) caption(`完成　${this.end.toFixed(1)} 秒`, 460, INK, 1, 20);
+    },
+    tap(x, y){
+      if (this.end != null){ this.init(); return; }
+      let hit = null, best = 46;
+      for (const s of this.cs){ if (s.placed) continue; const d = dist(x, y, s.x, s.y); if (d < best){ best = d; hit = s; } }
+      if (!hit) return;
+      if (hit.c === L1[this.next]){
+        hit.placed = true; hit.a = wrapAngle(hit.a); this.next++;
+        if (this.next === 10){
+          this.end = (millis() - this.start) / 1000;
+          if (this.best == null || this.end < this.best){ this.best = this.end; saveBest(this.end); }
+        }
+      } else {
+        this.miss++; hit.flash = 18;
+        for (const s of this.cs){ if (s.placed) continue; s.vx = constrain(s.vx * 1.1, -4, 4); s.vy = constrain(s.vy * 1.1, -4, 4); }
+      }
+    },
+    status(){
+      const b = this.best != null ? `　自己ベスト ${this.best.toFixed(1)} 秒` : '';
+      if (this.end != null) return `完成！ ${this.end.toFixed(1)} 秒・ミス ${this.miss} 回${b}　タップでもう一度`;
+      return `次の字：${L1[this.next]}　${((millis() - this.start) / 1000).toFixed(1)} 秒　ミス ${this.miss}${b}`;
+    }
+  },
+
+  sound: {
+    name: '琴の音',
+    desc: '文字が壁に当たると、平調子ふうの音階で音が鳴ります。一字ごとに音の高さが違い、「国」がいちばん低く「深」がいちばん高い音です。',
+    init(){
+      this.cs = [...L1].map((c, i) => { const s = flyer(c, null, [i * 36, 50, 92]); s.f = 293.66 * Math.pow(2, HIRA[i] / 12); s.p = 0; return s; });
+      this.rip = [];
+    },
+    draw(){
+      background(230, 32, 15);
+      for (const r of this.rip){
+        r.r += 2.2 * SP; r.al *= 0.95;
+        noFill(); stroke(r.col[0], r.col[1], r.col[2], r.al); strokeWeight(2); circle(r.x, r.y, r.r * 2);
+      }
+      noStroke();
+      this.rip = this.rip.filter(r => r.al > 0.02);
+      for (const s of this.cs){
+        if (move(s)){ s.p = 1; pluck(s.f); this.rip.push({ x: s.x, y: s.y, r: 8, al: 0.8, col: s.col }); }
+        s.p *= 0.9;
+        glyph(s, 44 * (1 + 0.35 * s.p), s.col);
+      }
+      if (!audioOn){
+        fill(230, 32, 10, 0.72); rect(W/2 - 150, W/2 - 30, 300, 60, 8);
+        caption('タップすると音が鳴ります', W/2, [0, 0, 100], 1, 20);
+      }
+    },
+    tap(){ toggleAudio(); },
+    status(){ return audioOn ? '音あり　タップで消音' : '音なし　タップで音を出す'; }
+  }
+};
+
+/* ---------- p5 ---------- */
+function toLogical(e){
+  const r = e.currentTarget.getBoundingClientRect();
+  return { x: (e.clientX - r.left) / r.width * W, y: (e.clientY - r.top) / r.height * W };
+}
+function refreshStatus(){ if (cur && cur.status) statusEl.textContent = cur.status(); }
+
+function setMode(key){
+  curKey = key; cur = MODES[key]; cur.init();
+  document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.mode === key)));
+  document.getElementById('modeName').textContent = cur.name;
+  document.getElementById('modeDesc').textContent = cur.desc;
+  refreshStatus();
+  try { localStorage.setItem('flying-tofu-mode', key); } catch(e){}
+}
+
+function setup(){
+  stageEl = document.getElementById('stage');
+  statusEl = document.getElementById('statusLine');
+  const sz = stageEl.clientWidth || 360; u = sz / W;
+  const cnv = createCanvas(sz, sz); cnv.parent(stageEl);
+  pixelDensity(Math.min(2, displayDensity()));
+  colorMode(HSB, 360, 100, 100, 1);
+
+  cnv.elt.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    const p = toLogical(e);
+    if (cur.tap) cur.tap(p.x, p.y);
+    refreshStatus();
+  });
+  cnv.elt.addEventListener('pointermove', e => {
+    const p = toLogical(e);
+    if (lastPX != null && curKey === 'petals') windV = constrain(windV + (p.x - lastPX) * 0.04, -6, 6);
+    lastPX = p.x;
+  });
+  cnv.elt.addEventListener('pointerleave', () => { lastPX = null; });
+
+  if (document.fonts) document.fonts.load("700 40px 'Zen Old Mincho'", POEM.join('') + '杜甫「」春望より完成秒タップすると音が鳴ります').catch(() => {});
+
+  document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
+  let saved = null;
+  try { saved = localStorage.getItem('flying-tofu-mode'); } catch(e){}
+  setMode(MODES[saved] ? saved : 'gather');
+}
+
+function draw(){
+  textFont(MINCHO); textStyle(BOLD); textAlign(CENTER, CENTER); rectMode(CORNER);
+  push(); scale(u); cur.draw(); pop();
+  if (frameCount % 6 === 0) refreshStatus();
+}
+
+function windowResized(){
+  const sz = stageEl.clientWidth;
+  if (sz && Math.abs(sz - width) > 1){
+    resizeCanvas(sz, sz); u = sz / W;
+    if (cur.onResize) cur.onResize();
+  }
+}
+</script>
+
+</body></html>

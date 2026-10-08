@@ -1,0 +1,1267 @@
+<!doctype html><html lang="ja"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Reading Lamp</title>
+<meta name="description" content="Short English reading passages with comprehension questions, evidence highlighting, an optional timer and optional summary practice.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;0,7..72,600;1,7..72,400&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap">
+<style>
+  :root {
+    --paper: #ECEAE1;
+    --paper-raised: #FAF9F4;
+    --ink: #24211D;
+    --ink-soft: #635C52;
+    --ink-faint: #8A8274;
+    --line: #D9D4C6;
+    --accent: #2E6F5C;
+    --accent-soft: #DEEAE5;
+    --good: #2A5C8A;
+    --good-soft: #E1EAF2;
+    --bad: #A83B2E;
+    --bad-soft: #F6E4E1;
+    --mark: #F3E3A6;
+    --mark-ink: #24211D;
+    --adv: #4F4A8C;
+    --adv-soft: #E6E4F2;
+    --shadow: 0 1px 2px rgba(36,33,29,0.06), 0 10px 28px -14px rgba(36,33,29,0.22);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --paper: #191B19;
+      --paper-raised: #212421;
+      --ink: #E8E5DC;
+      --ink-soft: #A9A398;
+      --ink-faint: #857E72;
+      --line: #33362F;
+      --accent: #6FBBA0;
+      --accent-soft: #223A32;
+      --good: #7AAEDD;
+      --good-soft: #1F3245;
+      --bad: #E08A78;
+      --bad-soft: #3A241F;
+      --mark: #5A4C1C;
+      --mark-ink: #F4EBD0;
+      --adv: #A9A4E6;
+      --adv-soft: #2A2842;
+      --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 10px 28px -14px rgba(0,0,0,0.55);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --paper: #191B19;
+    --paper-raised: #212421;
+    --ink: #E8E5DC;
+    --ink-soft: #A9A398;
+    --ink-faint: #857E72;
+    --line: #33362F;
+    --accent: #6FBBA0;
+    --accent-soft: #223A32;
+    --good: #7AAEDD;
+    --good-soft: #1F3245;
+    --bad: #E08A78;
+    --bad-soft: #3A241F;
+    --mark: #5A4C1C;
+    --mark-ink: #F4EBD0;
+    --adv: #A9A4E6;
+    --adv-soft: #2A2842;
+    --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 10px 28px -14px rgba(0,0,0,0.55);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Public Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+    min-height: 100vh;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+
+  .wrap { max-width: 640px; margin: 0 auto; padding: 26px 18px 70px; }
+
+  header.top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+  header.top h1 {
+    font-family: "Literata", Georgia, serif; font-weight: 600;
+    font-size: clamp(1.35rem, 5vw, 1.65rem); letter-spacing: -0.01em; margin: 0; color: var(--accent);
+  }
+  .passage-count { font-family: "JetBrains Mono", monospace; font-variant-numeric: tabular-nums; font-size: 0.85rem; color: var(--ink-soft); white-space: nowrap; }
+  .subtitle { color: var(--ink-soft); font-size: 0.88rem; margin: 0 0 22px; line-height: 1.6; }
+
+  .card {
+    background: var(--paper-raised); border: 1px solid var(--line); border-radius: 14px;
+    padding: 22px 22px 24px; box-shadow: var(--shadow); margin-bottom: 18px;
+  }
+
+  .card-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+  .tag {
+    display: inline-block; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--accent); background: var(--accent-soft); padding: 4px 10px; border-radius: 999px;
+  }
+  h2.title { font-family: "Literata", Georgia, serif; font-weight: 600; font-size: 1.2rem; margin: 0 0 4px; text-wrap: balance; }
+  .meta-line { font-family: "JetBrains Mono", monospace; font-size: 0.78rem; color: var(--ink-faint); margin: 0 0 16px; }
+
+  .passage-text { font-family: "Literata", Georgia, serif; font-size: 1.04rem; line-height: 1.8; max-width: 62ch; }
+  .passage-text p { margin: 0 0 1em; }
+  .passage-text p:last-child { margin-bottom: 0; }
+  .para-no { font-family: "JetBrains Mono", monospace; font-size: 0.7rem; color: var(--ink-faint); margin-right: 6px; vertical-align: 0.15em; }
+
+  .ev { border-radius: 3px; transition: background-color .3s ease; }
+  .ev.on { background: var(--mark); color: var(--mark-ink); box-shadow: 0 0 0 2px var(--mark); }
+  .ev-tag { font-family: "JetBrains Mono", monospace; font-size: 0.66rem; font-weight: 600; color: var(--ink-soft); vertical-align: 0.4em; margin-left: 2px; }
+
+  /* optional timer */
+  .timer {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    font-family: "JetBrains Mono", monospace; font-variant-numeric: tabular-nums; font-size: 0.82rem; color: var(--ink-soft);
+  }
+  .timer button {
+    font-family: "Public Sans", sans-serif; font-size: 0.8rem; font-weight: 600;
+    background: transparent; color: var(--ink-soft); border: 1.3px solid var(--line); border-radius: 999px;
+    padding: 5px 12px; cursor: pointer;
+  }
+  .timer button:hover { border-color: var(--accent); color: var(--accent); }
+  .timer .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--bad); animation: pulse 1.2s ease-in-out infinite; }
+  .timer .wpm { color: var(--accent); font-weight: 600; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.25; } }
+
+  button.primary, button.secondary {
+    font-family: "Public Sans", sans-serif; font-weight: 600; font-size: 0.92rem;
+    border-radius: 8px; padding: 10px 18px; cursor: pointer; border: none;
+    transition: opacity .15s ease, background-color .15s ease;
+  }
+  button.primary { color: var(--paper-raised); background: var(--accent); }
+  button.primary:hover:not(:disabled) { opacity: 0.88; }
+  button.secondary { color: var(--ink); background: transparent; border: 1.4px solid var(--line); }
+  button.secondary:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+  button:disabled { opacity: 0.5; cursor: default; }
+  button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .section-label { font-weight: 600; font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 14px; }
+
+  .quiz-item { display: flex; flex-direction: column; gap: 10px; padding-bottom: 20px; margin-bottom: 20px; border-bottom: 1px dashed var(--line); }
+  .quiz-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .quiz-q { font-size: 0.98rem; font-weight: 500; line-height: 1.5; margin: 0; }
+  .quiz-q .qtype { display: block; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 3px; }
+  .options { display: flex; flex-direction: column; gap: 8px; }
+  .option {
+    display: flex; align-items: flex-start; gap: 10px; width: 100%; text-align: left;
+    background: var(--paper); border: 1.4px solid var(--line); border-radius: 9px; padding: 11px 13px;
+    font-family: "Public Sans", sans-serif; font-size: 0.92rem; line-height: 1.4; color: var(--ink); cursor: pointer;
+    transition: border-color .15s ease, background-color .15s ease;
+  }
+  .option:hover:not(:disabled) { border-color: var(--accent); }
+  .option:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .option:disabled { cursor: default; }
+  .option .letter { font-family: "JetBrains Mono", monospace; font-size: 0.76rem; color: var(--ink-faint); flex: 0 0 auto; width: 1.2em; padding-top: 1px; }
+  .option.correct { background: var(--good-soft); border-color: var(--good); }
+  .option.correct .letter { color: var(--good); }
+  .option.incorrect { background: var(--bad-soft); border-color: var(--bad); }
+  .option.incorrect .letter { color: var(--bad); }
+
+  .explain {
+    padding: 10px 13px; border-radius: 8px; border-left: 3px solid var(--line); background: var(--paper);
+    font-size: 0.86rem; line-height: 1.65; color: var(--ink-soft);
+  }
+  .explain.correct { border-left-color: var(--good); }
+  .explain.incorrect { border-left-color: var(--bad); }
+  .explain .evnote { display: block; margin-top: 4px; font-size: 0.8rem; color: var(--ink-faint); }
+  .explain .evnote b { background: var(--mark); color: var(--mark-ink); font-weight: 600; padding: 0 4px; border-radius: 3px; }
+
+  details.bonus { border-top: 1px solid var(--line); margin-top: 22px; padding-top: 16px; }
+  details.bonus summary { cursor: pointer; font-weight: 600; font-size: 0.9rem; color: var(--accent); list-style: none; }
+  details.bonus summary::-webkit-details-marker { display: none; }
+  details.bonus summary::before { content: "＋ "; }
+  details.bonus[open] summary::before { content: "－ "; }
+  .bonus-body { margin-top: 12px; display: flex; flex-direction: column; gap: 10px; }
+  .bonus-body p { margin: 0; font-size: 0.9rem; line-height: 1.6; }
+  textarea.summary-box {
+    width: 100%; min-height: 84px; resize: vertical; font-family: "Public Sans", sans-serif; font-size: 0.94rem; line-height: 1.55;
+    padding: 12px 13px; border-radius: 9px; border: 1.4px solid var(--line); background: var(--paper); color: var(--ink);
+  }
+  textarea.summary-box:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .feedback-panel {
+    padding: 14px 15px; border-radius: 9px; background: var(--accent-soft); border-left: 3px solid var(--accent);
+    font-size: 0.9rem; line-height: 1.7; white-space: pre-wrap;
+  }
+
+  .advance-row { display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+  .advance-hint { font-size: 0.8rem; color: var(--ink-faint); }
+
+  .results { text-align: center; }
+  .big { font-family: "JetBrains Mono", monospace; font-size: 2rem; font-weight: 600; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .big-label { font-size: 0.8rem; color: var(--ink-soft); margin-bottom: 22px; }
+  .breakdown { display: flex; flex-direction: column; gap: 8px; text-align: left; margin-bottom: 22px; }
+  .breakdown-row {
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    padding: 10px 14px; background: var(--paper); border: 1px solid var(--line); border-radius: 8px; font-size: 0.86rem;
+  }
+  .breakdown-row .label { color: var(--ink-soft); }
+  .breakdown-row .val { font-family: "JetBrains Mono", monospace; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .level {
+    display: inline-block; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--ink-soft); border: 1.3px solid var(--line); padding: 3px 9px; border-radius: 999px;
+  }
+  .level.adv { color: var(--adv); background: var(--adv-soft); border-color: transparent; }
+  .level.mini { font-family: "JetBrains Mono", monospace; padding: 0 6px; margin-right: 8px; letter-spacing: 0; }
+  .result-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .pool-note { font-size: 0.8rem; color: var(--ink-faint); margin: 16px 0 0; }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <h1>Reading Lamp</h1>
+    <div class="passage-count" id="passageCount">Set 1 · 1 / 4</div>
+  </header>
+  <p class="subtitle">1セットは4題（Standard 2題・Advanced 2題）、各4問です。答えると根拠の箇所が本文で光ります。セットを終えたら次のセットへ進めます。時間計測と英語要約は使いたいときだけ。</p>
+  <main id="app"></main>
+</div>
+
+<script>
+  const POOL = [
+    {
+      title: "The Book of Tea",
+      tag: "Culture",
+      level: "Standard",
+      paras: [
+        "In 1906, a Japanese art expert named Okakura Kakuzo published a small book in New York. It was called The Book of Tea, and it was written not in Japanese but in English. Okakura wanted Western readers to understand that Asian culture had deep values of its own. At that time, many people in the West saw Asia only as a place that needed to be modernized.",
+        "The book uses the tea ceremony as a window into Japanese thinking. According to Okakura, tea is more than a drink. It is a way of finding beauty in simple, everyday things, such as a plain cup or a single flower in a quiet room. He also suggested that imperfect things can be more beautiful than perfect ones, because they leave room for the imagination. More than a hundred years later, the book is still read around the world."
+      ],
+      questions: [
+        {
+          type: "Main idea",
+          q: "What is the passage mainly about?",
+          options: [
+            "How to perform the Japanese tea ceremony correctly",
+            "The history of the tea trade between Japan and America",
+            "A book written in English to explain Japanese ideas of beauty",
+            "Why Western countries wanted to modernize Asia"
+          ],
+          correct: 2,
+          evidence: "The book uses the tea ceremony as a window into Japanese thinking.",
+          explain: "第1段落で「英語で書かれた本」、第2段落でその中身（日常の中の美）を説明しています。全体の話題はCです。"
+        },
+        {
+          type: "Detail",
+          q: "Why did Okakura write the book in English?",
+          options: [
+            "He had forgotten how to write in Japanese.",
+            "He wanted Western readers to understand the value of Asian culture.",
+            "His publisher in New York did not accept Japanese books.",
+            "He wanted to practice his English."
+          ],
+          correct: 1,
+          evidence: "Okakura wanted Western readers to understand that Asian culture had deep values of its own.",
+          explain: "「西洋の読者に、アジアの文化にも独自の深い価値があると分かってほしかった」がそのまま理由です。"
+        },
+        {
+          type: "Vocabulary",
+          q: "In paragraph 2, “a window into” is closest in meaning to:",
+          options: ["a way to see and understand", "a wall that hides", "a door that closes", "a rule that controls"],
+          correct: 0,
+          evidence: "It is a way of finding beauty in simple, everyday things",
+          explain: "a window into ～ は「～をのぞき見る窓」→「～を理解する手がかり」。茶道を通して日本人の考え方が見える、という意味です。"
+        },
+        {
+          type: "Reading skill",
+          q: "Why does the writer mention “a plain cup or a single flower”?",
+          options: [
+            "To show what Okakura owned",
+            "To give examples of simple, everyday beauty",
+            "To explain the price of tea tools",
+            "To criticize expensive art"
+          ],
+          correct: 1,
+          evidence: "such as a plain cup or a single flower in a quiet room",
+          explain: "such as の後は直前の内容の具体例です。「素朴で日常的なものの美」の例として挙げられています。"
+        }
+      ],
+      summaryPrompt: "この本が何を伝えようとしたのかを、1〜2文の英語でまとめてみましょう。"
+    },
+    {
+      title: "Hoshiimo: Sun-Dried Sweetness",
+      tag: "Food & Region",
+      level: "Standard",
+      paras: [
+        "Hoshiimo, or dried sweet potato, is a simple snack with a long history. Sweet potatoes are steamed, cut into thin slices, and then dried in the sun and the cold winter wind for a week or more. Nothing else is added, yet the finished snack is soft, chewy, and surprisingly sweet. During drying, much of the water leaves the potato, so its natural sugar becomes more concentrated.",
+        "Ibaraki Prefecture produces most of the hoshiimo made in Japan. The coastal area around Hitachinaka is especially well known for it. The sandy soil there is good for growing sweet potatoes, and the dry, windy winters are ideal for drying them. In recent years, hoshiimo has gained new fans as a healthy snack, because it is rich in dietary fiber and has no added sugar. Some local makers now sell it online and even export it overseas."
+      ],
+      questions: [
+        {
+          type: "Main idea",
+          q: "What does the passage mainly explain?",
+          options: [
+            "How hoshiimo is made and why one area is famous for it",
+            "Why sweet potatoes are difficult to grow",
+            "How to cook sweet potatoes at home",
+            "Why Japanese snacks are sold overseas"
+          ],
+          correct: 0,
+          evidence: "Ibaraki Prefecture produces most of the hoshiimo made in Japan.",
+          explain: "第1段落が作り方、第2段落が産地（茨城・ひたちなか）の話です。両方をまとめたAが正解。"
+        },
+        {
+          type: "Detail",
+          q: "Why does hoshiimo taste sweet even though no sugar is added?",
+          options: [
+            "Honey is used when the potatoes are steamed.",
+            "Special sweet potatoes are imported for it.",
+            "Drying removes water, so the natural sugar becomes stronger.",
+            "The cold wind adds sugar to the potatoes."
+          ],
+          correct: 2,
+          evidence: "During drying, much of the water leaves the potato, so its natural sugar becomes more concentrated.",
+          explain: "乾燥で水分が抜け、もともとの糖分が凝縮する、と書かれています。"
+        },
+        {
+          type: "Vocabulary",
+          q: "In paragraph 1, “concentrated” is closest in meaning to:",
+          options: ["frozen", "stronger in a smaller amount", "washed away", "mixed with water"],
+          correct: 1,
+          evidence: "Nothing else is added, yet the finished snack is soft, chewy, and surprisingly sweet.",
+          explain: "concentrated は「濃縮された」。水分が減って、同じ量の中の甘さが強くなるイメージです。"
+        },
+        {
+          type: "Detail",
+          q: "According to the passage, why is hoshiimo becoming popular as a healthy snack?",
+          options: [
+            "It is low in price.",
+            "It can be kept for many years.",
+            "It is rich in fiber and has no added sugar.",
+            "It is made in large factories."
+          ],
+          correct: 2,
+          evidence: "because it is rich in dietary fiber and has no added sugar",
+          explain: "because 以下が理由です。食物繊維が豊富で砂糖を加えていないから。"
+        }
+      ],
+      summaryPrompt: "干し芋が甘い理由と、茨城で多く作られる理由を、1〜2文の英語で書いてみましょう。"
+    },
+    {
+      title: "Kind of Blue",
+      tag: "Music",
+      level: "Standard",
+      paras: [
+        "Kind of Blue, recorded by trumpeter Miles Davis in 1959, is often called the best-selling jazz album of all time. What makes its story interesting is how little the musicians knew before they started. Davis did not give his band fully written music. Instead, he brought only simple sketches of scales and a few melodies, and he explained them just before recording. Many of the pieces were finished in a single take.",
+        "Davis believed that this way of working would keep the music fresh. If the players did not rehearse too much, they would have to listen carefully to each other and respond in the moment. The result was music that sounds calm and open rather than busy. Many later musicians, not only in jazz but also in rock and classical music, have said that this album changed the way they thought about playing."
+      ],
+      questions: [
+        {
+          type: "Detail",
+          q: "What did Davis give his band before the recording?",
+          options: [
+            "Fully written music for every part",
+            "Only simple sketches of scales and melodies",
+            "Recordings of older jazz albums",
+            "Nothing at all"
+          ],
+          correct: 1,
+          evidence: "he brought only simple sketches of scales and a few melodies",
+          explain: "Instead（その代わりに）の後に、簡単なスケールのスケッチと少しのメロディだけを持ってきた、とあります。Dの「何も渡さなかった」は言い過ぎです。"
+        },
+        {
+          type: "Detail",
+          q: "Why did Davis avoid too much rehearsal?",
+          options: [
+            "He wanted the players to listen to each other and react freshly.",
+            "The studio was too expensive to use for long.",
+            "The band members were too busy.",
+            "He did not like the band very much."
+          ],
+          correct: 0,
+          evidence: "they would have to listen carefully to each other and respond in the moment",
+          explain: "練習しすぎなければ、互いによく聴いてその場で反応するしかない。それが音楽を新鮮に保つ、という考えです。"
+        },
+        {
+          type: "Vocabulary",
+          q: "In paragraph 2, “respond in the moment” is closest in meaning to:",
+          options: [
+            "answer after thinking for a long time",
+            "react at that exact time, without planning",
+            "repeat what was practiced",
+            "stop playing for a moment"
+          ],
+          correct: 1,
+          evidence: "Davis believed that this way of working would keep the music fresh.",
+          explain: "in the moment は「その瞬間に、その場で」。事前に決めず、その場で反応するという意味です。"
+        },
+        {
+          type: "Reading skill",
+          q: "What is the writer’s attitude toward the album?",
+          options: ["Critical", "Admiring", "Worried", "Uninterested"],
+          correct: 1,
+          evidence: "this album changed the way they thought about playing",
+          explain: "「最も売れたジャズアルバム」「後の音楽家の演奏の考え方を変えた」など、全体を通して高く評価しています。"
+        }
+      ],
+      summaryPrompt: "Davis の録音のやり方と、そのねらいを、1〜2文の英語でまとめてみましょう。"
+    },
+    {
+      title: "Art Festivals in Rural Towns",
+      tag: "Society",
+      level: "Standard",
+      paras: [
+        "Across Japan, many rural towns now hold large art festivals. Artists from Japan and abroad create works in empty schools, old houses, rice fields, and even on small islands. The Echigo-Tsumari Art Triennale in Niigata, which started in 2000, is one of the earliest examples. Supporters say these events bring visitors to areas with shrinking populations and help local people see the value of their own landscape and history.",
+        "However, the festivals also face difficult questions. They usually depend on money from local governments, and it is not easy to measure whether they really help the local economy in the long run. Some residents feel that the events are planned by outsiders and that they themselves are only spectators. For this reason, many organizers now try to involve local people from the planning stage, for example by asking them to help artists or guide visitors."
+      ],
+      questions: [
+        {
+          type: "Main idea",
+          q: "What is the passage mainly about?",
+          options: [
+            "How to become an artist in the countryside",
+            "The good points and the problems of rural art festivals",
+            "Why Niigata is the best place for art",
+            "The history of Japanese painting"
+          ],
+          correct: 1,
+          evidence: "many rural towns now hold large art festivals",
+          explain: "第1段落が利点、第2段落が課題。両方を扱うBが正解です。"
+        },
+        {
+          type: "Detail",
+          q: "According to supporters, what is one benefit of the festivals?",
+          options: [
+            "They make local taxes lower.",
+            "They bring visitors to areas with shrinking populations.",
+            "They stop young people from moving to cities.",
+            "They replace schools that have closed."
+          ],
+          correct: 1,
+          evidence: "bring visitors to areas with shrinking populations",
+          explain: "Supporters say の後に、人口が減っている地域に訪問者を呼ぶ、とあります。Cのような効果は書かれていません。"
+        },
+        {
+          type: "Detail",
+          q: "Why are some residents unhappy with the festivals?",
+          options: [
+            "They feel the events are planned by outsiders.",
+            "They do not like modern art.",
+            "The festivals are too short.",
+            "Too many artists move into their towns."
+          ],
+          correct: 0,
+          evidence: "Some residents feel that the events are planned by outsiders",
+          explain: "外部の人が企画し、自分たちは見ているだけ（spectators）だと感じる住民がいる、と書かれています。"
+        },
+        {
+          type: "Reading skill",
+          q: "What does the word “However” at the start of paragraph 2 tell the reader?",
+          options: [
+            "The writer will give another example of a festival.",
+            "The writer is changing from benefits to problems.",
+            "The writer will repeat the same idea.",
+            "The passage is about to end."
+          ],
+          correct: 1,
+          evidence: "the festivals also face difficult questions",
+          explain: "However は流れを逆にする合図です。第1段落の良い点から、第2段落の課題へと話が切り替わります。"
+        }
+      ],
+      summaryPrompt: "地域の芸術祭の利点と課題を1つずつ入れて、1〜2文の英語で書いてみましょう。"
+    }
+    ,
+    {
+      title: "Kairakuen",
+      tag: "History & Region",
+      level: "Standard",
+      paras: [
+        "Kairakuen in Mito is known as one of the three great gardens of Japan. It was opened in 1842 by Tokugawa Nariaki, the lord of the Mito domain. Unlike many gardens of that time, which only the ruling class could enter, Kairakuen was open to ordinary people on certain days. Its name expresses this idea: it means “a garden to enjoy together.”",
+        "The garden is famous for its plum trees. About 3,000 trees of around 100 varieties grow there, and they bloom from February to March, when the air is still cold. Nariaki planted so many plum trees partly for their beauty, but also for a practical reason. Pickled plums, or umeboshi, could be stored for a long time and were useful as food in times of war or poor harvests. Today, the plum festival attracts many visitors every year."
+      ],
+      questions: [
+        {
+          type: "Detail",
+          q: "What made Kairakuen different from many other gardens of its time?",
+          options: [
+            "It was the largest garden in Japan.",
+            "Ordinary people could enter it on certain days.",
+            "It had no trees at all.",
+            "It was built by a famous artist."
+          ],
+          correct: 1,
+          evidence: "Kairakuen was open to ordinary people on certain days",
+          explain: "Unlike ～（～とは違って）の後に、一般の人々にも特定の日に開かれていた、とあります。"
+        },
+        {
+          type: "Vocabulary",
+          q: "In paragraph 1, “the ruling class” means:",
+          options: [
+            "students who follow rules",
+            "the group of people who held power and governed",
+            "farmers who grew plums",
+            "people who measured land"
+          ],
+          correct: 1,
+          evidence: "which only the ruling class could enter",
+          explain: "rule には「支配する、治める」の意味があります。the ruling class は「支配階級」。"
+        },
+        {
+          type: "Detail",
+          q: "Besides their beauty, why did Nariaki plant so many plum trees?",
+          options: [
+            "Plum wood was used to build houses.",
+            "Pickled plums could be stored as food for hard times.",
+            "Plum flowers were sold to other countries.",
+            "Plum trees protected the garden from wind."
+          ],
+          correct: 1,
+          evidence: "could be stored for a long time and were useful as food in times of war or poor harvests",
+          explain: "梅干しは長く保存でき、戦や不作のときの食料として役立った、という実用的な理由です。"
+        },
+        {
+          type: "Reading skill",
+          q: "Why does the writer explain the meaning of the name “Kairakuen”?",
+          options: [
+            "To show that the name is difficult to read",
+            "To support the idea that the garden was for everyone",
+            "To compare it with gardens in other countries",
+            "To explain how plums are pickled"
+          ],
+          correct: 1,
+          evidence: "it means “a garden to enjoy together.”",
+          explain: "直前の「一般の人にも開かれていた」を、名前の意味（皆で楽しむ庭）で裏づけています。"
+        }
+      ],
+      summaryPrompt: "偕楽園の特徴を2つ入れて、1〜2文の英語でまとめてみましょう。"
+    },
+    {
+      title: "Learning an Instrument as an Adult",
+      tag: "Music & Life",
+      level: "Standard",
+      paras: [
+        "Many people believe that learning a musical instrument is something best done in childhood. It is true that young children often pick up new skills quickly. However, adults have some advantages that children do not. They usually understand why they want to learn, they can plan their own practice time, and they can draw on years of listening to music they love.",
+        "Teachers who work with adult students often give similar advice. First, practice for a short time every day rather than for many hours once a week. Twenty minutes a day is usually more effective than two hours on Sunday. Second, choose pieces you really love, even if they are simple. Finally, do not compare yourself with others. Progress may be slow, but the joy of playing a favorite song with your own hands is worth the effort."
+      ],
+      questions: [
+        {
+          type: "Main idea",
+          q: "What is the main message of the passage?",
+          options: [
+            "Only children can learn musical instruments well.",
+            "Adults have their own strengths as learners, and there are good ways for them to practice.",
+            "Adults should practice for many hours on weekends.",
+            "Music teachers prefer adult students to children."
+          ],
+          correct: 1,
+          evidence: "However, adults have some advantages that children do not.",
+          explain: "第1段落で大人の強み、第2段落で練習のコツ。両方を含むBが正解です。"
+        },
+        {
+          type: "Vocabulary",
+          q: "In paragraph 1, “pick up” is closest in meaning to:",
+          options: ["lift from the floor", "learn easily", "collect by car", "choose carefully"],
+          correct: 1,
+          evidence: "young children often pick up new skills quickly",
+          explain: "pick up にはいくつも意味がありますが、skills と一緒なら「（自然に）身につける、覚える」です。"
+        },
+        {
+          type: "Detail",
+          q: "Which of the following is an advantage adults have, according to the passage?",
+          options: [
+            "They have softer fingers.",
+            "They usually know why they want to learn.",
+            "They never feel tired.",
+            "They learn faster than children."
+          ],
+          correct: 1,
+          evidence: "They usually understand why they want to learn",
+          explain: "大人は学ぶ理由を理解している、とあります。Dは本文と逆で、速く覚えるのは子どもの方です。"
+        },
+        {
+          type: "Detail",
+          q: "What kind of practice do teachers recommend?",
+          options: [
+            "Two long sessions each weekend",
+            "A short practice every day",
+            "Practicing only difficult pieces",
+            "Practicing together with children"
+          ],
+          correct: 1,
+          evidence: "Twenty minutes a day is usually more effective than two hours on Sunday.",
+          explain: "毎日20分の方が、日曜に2時間より効果的。短く毎日、がポイントです。"
+        }
+      ],
+      summaryPrompt: "大人が楽器を学ぶときのアドバイスを2つ選んで、1〜2文の英語で書いてみましょう。"
+    },
+    {
+      title: "The Hollow Ship of Hitachi",
+      tag: "History & Mystery",
+      level: "Advanced",
+      paras: [
+        "In 1803, according to several documents from the Edo period, a strange vessel drifted ashore on the coast of Hitachi Province, in what is now Ibaraki Prefecture. Local fishermen described it as round, like an incense burner or a large rice bowl, with glass windows on its upper part. Inside was a young woman with pale skin and red hair, who spoke a language no one could understand. She held a small wooden box tightly and would not let anyone touch it.",
+        "The story, known as utsuro-bune, or “hollow ship,” was recorded in several different texts, including a collection of strange tales compiled by the writer Takizawa Bakin and his circle in 1825. The drawings that accompany these records are remarkably similar, yet the details of the location and of what happened to the woman vary considerably. Some versions say that the villagers, afraid of trouble with the authorities, pushed the vessel back out to sea.",
+        "Modern researchers remain divided over how to interpret the tale. Some regard it as a folk legend that grew in the retelling, while others suggest it may reflect a real encounter with a foreign ship at a time when Japan strictly limited contact with the outside world. More recently, the unusual shape of the vessel has made the story popular among fans of UFOs, a reading that most historians consider far-fetched."
+      ],
+      questions: [
+        {
+          type: "Main idea",
+          q: "Which statement best describes the passage?",
+          options: [
+            "It proves that a UFO landed in Japan in 1803.",
+            "It introduces an old story whose meaning is still debated.",
+            "It explains how Edo-period ships were built.",
+            "It describes the life of Takizawa Bakin."
+          ],
+          correct: 1,
+          evidence: "Modern researchers remain divided over how to interpret the tale.",
+          explain: "話の紹介→記録の食い違い→解釈が分かれている、という流れ。Aは本文が「こじつけ」と退けている解釈です。"
+        },
+        {
+          type: "Detail",
+          q: "According to the passage, what is surprisingly consistent across the different records?",
+          options: [
+            "The exact place where the ship arrived",
+            "What happened to the woman afterward",
+            "The pictures that go with the records",
+            "The language the woman spoke"
+          ],
+          correct: 2,
+          evidence: "The drawings that accompany these records are remarkably similar",
+          explain: "絵はよく似ている一方、場所や女性のその後は「かなり異なる」。対比を読み取る問題です。"
+        },
+        {
+          type: "Inference",
+          q: "Why might the villagers have pushed the vessel back out to sea?",
+          options: [
+            "They wanted to return the woman to her home.",
+            "They were worried about getting into trouble, since contact with foreigners was restricted.",
+            "The vessel was too heavy to keep on the beach.",
+            "They wanted to sell the wooden box."
+          ],
+          correct: 1,
+          evidence: "afraid of trouble with the authorities",
+          explain: "「役人との面倒を恐れて」と、第3段落の「当時日本は外国との接触を厳しく制限していた」を合わせて推測します。"
+        },
+        {
+          type: "Vocabulary",
+          q: "In paragraph 3, “far-fetched” is closest in meaning to:",
+          options: ["hard to believe", "well researched", "very old", "widely accepted"],
+          correct: 0,
+          evidence: "a reading that most historians consider far-fetched",
+          explain: "far-fetched は「こじつけの、ありそうにない」。遠く（far）から無理に持ってきた（fetched）というイメージです。"
+        }
+      ],
+      summaryPrompt: "うつろ舟の話と、その解釈が分かれていることを、2文程度の英語でまとめてみましょう。"
+    },
+    {
+      title: "Words and the Color Blue",
+      tag: "Language & Mind",
+      level: "Advanced",
+      paras: [
+        "The Japanese word ao is usually translated as “blue,” but anyone who has lived in Japan knows that it covers more than that. Traffic lights that look green to English speakers are called ao shingo, and fresh green vegetables are sometimes called aomono. Historically, the word seems to have referred to a wide range of colors between blue and green, and midori came into common use as a separate word for green only later.",
+        "Examples like this have fueled a long debate: does the language we speak influence the way we perceive the world? One well-known experiment compared English and Russian speakers. Russian has two basic words for what English calls blue, one for lighter shades and one for darker ones. When asked to tell apart two similar shades, Russian speakers were slightly faster when the shades fell on different sides of their language's boundary.",
+        "The effect was small, and nobody seriously claims that English speakers cannot see the difference between light and dark blue. Still, the finding suggests that words may act less like labels attached to a fixed reality and more like tools that direct our attention. What we have a name for, we may notice a little more easily."
+      ],
+      questions: [
+        {
+          type: "Main idea",
+          q: "What question does the passage mainly explore?",
+          options: [
+            "Why traffic lights in Japan are green",
+            "Whether our language affects how we perceive things",
+            "How many color words the Russian language has",
+            "Why English speakers cannot see some colors"
+          ],
+          correct: 1,
+          evidence: "does the language we speak influence the way we perceive the world?",
+          explain: "第2段落の問い「話す言語は世界の知覚に影響するか」が文章全体のテーマです。"
+        },
+        {
+          type: "Reading skill",
+          q: "Why does the writer mention ao shingo?",
+          options: [
+            "To give an example of ao being used for something green",
+            "To explain Japanese traffic rules",
+            "To show that Japanese people see colors poorly",
+            "To argue that midori is an older word than ao"
+          ],
+          correct: 0,
+          evidence: "Traffic lights that look green to English speakers are called ao shingo",
+          explain: "「英語話者には緑に見える信号を『青信号』と呼ぶ」は、ao が緑まで含む具体例です。Dは本文と逆。"
+        },
+        {
+          type: "Detail",
+          q: "In the experiment, when were Russian speakers faster?",
+          options: [
+            "When both shades had the same Russian name",
+            "When the two shades had different basic names in Russian",
+            "When the colors were green rather than blue",
+            "When they were tested in English"
+          ],
+          correct: 1,
+          evidence: "Russian speakers were slightly faster when the shades fell on different sides of their language's boundary",
+          explain: "「ロシア語の境界の両側に分かれる」＝ロシア語で別の名前になる2色のとき、わずかに速かった、という結果です。"
+        },
+        {
+          type: "Inference",
+          q: "Which statement best matches the writer's conclusion?",
+          options: [
+            "Language completely controls what we can see.",
+            "Language has no effect on perception at all.",
+            "Language may slightly guide what we pay attention to.",
+            "Russian speakers see colors better than English speakers."
+          ],
+          correct: 2,
+          evidence: "words may act less like labels attached to a fixed reality and more like tools that direct our attention",
+          explain: "効果は小さいと認めた上で、言葉は「注意を向ける道具」かもしれない、と控えめに結論づけています。may や a little の慎重な言い方に注目。"
+        }
+      ],
+      summaryPrompt: "この文章の問いと、筆者の控えめな結論を、2文程度の英語でまとめてみましょう。"
+    },
+    {
+      title: "Do Photos Help Us Remember?",
+      tag: "Psychology",
+      level: "Advanced",
+      paras: [
+        "Taking pictures has never been easier. Most of us carry a camera in our pocket and photograph meals, views, and museum exhibits almost without thinking. But does taking a photo help us remember an experience, or does it make us remember less?",
+        "In a 2014 study, psychologist Linda Henkel led students on a tour of an art museum. They were asked simply to look at some objects and to photograph others. The next day, the students remembered fewer objects, and fewer details about them, when they had photographed them than when they had only looked. Henkel called this the “photo-taking impairment effect.” One explanation is that people rely on the camera to remember for them, so they pay less attention themselves.",
+        "However, the study had an interesting twist. When students were asked to zoom in on a particular part of an object, their memory of the whole object did not suffer. Choosing what to focus on seems to require the kind of attention that simply pressing a button does not. The lesson, then, is not that we should stop taking pictures. It is that how we take them matters."
+      ],
+      questions: [
+        {
+          type: "Detail",
+          q: "What did Henkel's study find?",
+          options: [
+            "Students remembered photographed objects better.",
+            "Students remembered photographed objects less well than ones they only looked at.",
+            "Students did not remember anything the next day.",
+            "Students preferred looking to taking photos."
+          ],
+          correct: 1,
+          evidence: "the students remembered fewer objects, and fewer details about them",
+          explain: "写真を撮った物の方が、見ただけの物より覚えている数も細部も少なかった、という結果です。"
+        },
+        {
+          type: "Vocabulary",
+          q: "In paragraph 2, “impairment” is closest in meaning to:",
+          options: ["improvement", "weakening", "decoration", "payment"],
+          correct: 1,
+          evidence: "photo-taking impairment effect",
+          explain: "impair は「損なう、弱める」。impairment は「低下、障害」です。記憶が弱まる効果、という意味になります。"
+        },
+        {
+          type: "Detail",
+          q: "What is one explanation for the effect?",
+          options: [
+            "Cameras make loud noises that distract people.",
+            "People let the camera do the remembering and pay less attention.",
+            "Museums are too dark for good photos.",
+            "Photos are usually deleted the next day."
+          ],
+          correct: 1,
+          evidence: "people rely on the camera to remember for them",
+          explain: "カメラに記憶を任せてしまい、自分では注意を払わなくなる、という説明です。"
+        },
+        {
+          type: "Inference",
+          q: "Why did zooming in not harm memory, according to the passage?",
+          options: [
+            "Zoomed photos are larger and easier to see later.",
+            "Choosing a detail to focus on requires active attention.",
+            "Students took fewer photos when zooming.",
+            "Zooming takes more time than looking."
+          ],
+          correct: 1,
+          evidence: "Choosing what to focus on seems to require the kind of attention",
+          explain: "何に焦点を当てるか選ぶ行為そのものが注意を必要とするから、と読み取れます。ボタンを押すだけとの対比です。"
+        }
+      ],
+      summaryPrompt: "写真と記憶の関係について、研究の結果と「撮り方が大事」という結論を、2文程度の英語でまとめてみましょう。"
+    },
+    {
+      title: "Nudges",
+      tag: "Public Policy",
+      level: "Advanced",
+      paras: [
+        "In many countries, the rate of organ donor registration varies widely, even between neighbors with similar cultures. One major reason turns out to be surprisingly simple: the default option. In some countries, people are donors unless they choose not to be; in others, they must actively sign up. Where donation is the default, registration rates tend to be far higher.",
+        "Economist Richard Thaler and legal scholar Cass Sunstein called such design choices “nudges” in their 2008 book of the same name. A nudge changes the way choices are presented without forbidding any option or significantly changing costs. Placing fruit at eye level in a school cafeteria, or automatically enrolling workers in a pension plan while allowing them to leave, are typical examples. Governments in several countries have since set up special teams to apply these ideas to public policy.",
+        "Critics, however, argue that nudges can be manipulative, precisely because they work without people noticing. If a government decides which option should be the default, who decides what is good for citizens? Supporters respond that there is no neutral way to present choices, since some option must always come first. The real question, they say, is how to design choices openly and in citizens' interests."
+      ],
+      questions: [
+        {
+          type: "Vocabulary",
+          q: "In paragraph 1, “the default option” means the option that:",
+          options: [
+            "is the most expensive",
+            "applies automatically if a person does nothing",
+            "is chosen by experts only",
+            "is against the law"
+          ],
+          correct: 1,
+          evidence: "people are donors unless they choose not to be",
+          explain: "default は「初期設定、何もしなければ適用されるもの」。直後の「選ばない限りドナーになる」がその説明です。"
+        },
+        {
+          type: "Detail",
+          q: "According to the passage, what is a nudge?",
+          options: [
+            "A law that bans unhealthy choices",
+            "A tax that makes some choices more expensive",
+            "A way of presenting choices that guides people without removing options",
+            "A campaign that forces people to join a pension plan"
+          ],
+          correct: 2,
+          evidence: "A nudge changes the way choices are presented without forbidding any option or significantly changing costs",
+          explain: "選択肢を禁止せず、費用もほとんど変えずに、提示の仕方を変えるもの。A・Bは禁止やコスト変更なので違います。"
+        },
+        {
+          type: "Detail",
+          q: "Why do critics say nudges can be manipulative?",
+          options: [
+            "They are very expensive for governments.",
+            "They work without people noticing.",
+            "They remove people's freedom to choose.",
+            "They only work in rich countries."
+          ],
+          correct: 1,
+          evidence: "precisely because they work without people noticing",
+          explain: "人々が気づかないうちに作用するからこそ操作的だ、という批判です。Cは本文の定義（選択肢は残る）と矛盾します。"
+        },
+        {
+          type: "Inference",
+          q: "What do supporters mean by saying “there is no neutral way to present choices”?",
+          options: [
+            "Governments should never offer choices.",
+            "Every way of presenting choices already influences people somehow, so design cannot be avoided.",
+            "People always choose the first option.",
+            "Choices should be presented in random order."
+          ],
+          correct: 1,
+          evidence: "since some option must always come first",
+          explain: "どれかは必ず最初に来る以上、影響ゼロの提示はない。だから「設計するかどうか」ではなく「どう設計するか」が問題だ、という反論です。"
+        }
+      ],
+      summaryPrompt: "ナッジの定義と、それをめぐる賛否を、2文程度の英語でまとめてみましょう。"
+    },
+    {
+      title: "The Two Sigma Problem",
+      tag: "Education & AI",
+      level: "Advanced",
+      paras: [
+        "In 1984, the educational psychologist Benjamin Bloom reported a striking finding. Students who were taught one-on-one by a tutor performed about two standard deviations better than students taught in an ordinary classroom. In plain terms, the average tutored student did better than roughly 98 percent of the classroom students. Bloom called this the “2 sigma problem.” The problem was not whether tutoring works, but how to provide something similar to every student at a reasonable cost.",
+        "For decades, a solution seemed out of reach. Human tutors are expensive, and there are simply not enough of them. Recent advances in artificial intelligence have revived hope. AI tutors can answer questions at any hour, adjust explanations to a student's level, and never lose patience.",
+        "Yet researchers urge caution. Later studies have found that the effect of tutoring is often smaller than Bloom's famous figure, and a good tutor does more than deliver correct answers. Tutors notice when a student is confused or discouraged, and they know when to hold back and let the student struggle productively. Whether machines can learn to do this, or whether they will simply make it easier for students to skip the struggle, remains an open question."
+      ],
+      questions: [
+        {
+          type: "Detail",
+          q: "What was Bloom's finding?",
+          options: [
+            "Classroom teaching was better than tutoring.",
+            "Students taught one-on-one did much better than those in normal classes.",
+            "Tutoring had no clear effect.",
+            "Only 2 percent of students needed a tutor."
+          ],
+          correct: 1,
+          evidence: "performed about two standard deviations better",
+          explain: "個別指導を受けた生徒は標準偏差2つ分（平均で上位約2%）良い成績だった、という発見です。Dは数字の取り違えを狙った選択肢。"
+        },
+        {
+          type: "Detail",
+          q: "What exactly was the “2 sigma problem”?",
+          options: [
+            "Whether tutoring really works",
+            "How to give every student something like tutoring at a reasonable cost",
+            "How to measure students' scores accurately",
+            "Why classroom teachers were paid too little"
+          ],
+          correct: 1,
+          evidence: "how to provide something similar to every student at a reasonable cost",
+          explain: "not A but B の構文に注目。問題は「効くかどうか」ではなく「全員に手頃な費用で提供する方法」でした。"
+        },
+        {
+          type: "Vocabulary",
+          q: "In paragraph 2, “revived” is closest in meaning to:",
+          options: ["destroyed", "brought back", "hidden", "measured"],
+          correct: 1,
+          evidence: "Recent advances in artificial intelligence have revived hope.",
+          explain: "revive は「生き返らせる、復活させる」。長く手が届かなかった希望がAIで再び出てきた、という意味です。"
+        },
+        {
+          type: "Inference",
+          q: "What concern about AI tutors does the writer suggest?",
+          options: [
+            "They may be too expensive for most schools.",
+            "They may let students avoid the useful effort of struggling.",
+            "They may give too many wrong answers.",
+            "They may replace all human teachers soon."
+          ],
+          correct: 1,
+          evidence: "make it easier for students to skip the struggle",
+          explain: "良い家庭教師は「あえて手を出さず、生産的に悩ませる」。AIはその悩む過程を省かせてしまうかもしれない、という懸念です。"
+        }
+      ],
+      summaryPrompt: "ブルームの発見と、AI家庭教師への期待と懸念を、2文程度の英語でまとめてみましょう。"
+    },
+    {
+      title: "Toyama's Compact City",
+      tag: "Cities",
+      level: "Advanced",
+      paras: [
+        "Like many regional cities in Japan, Toyama spread outward during the late twentieth century. As people moved to the suburbs and relied more on cars, the city center emptied, and the cost of maintaining roads, water pipes, and other services across a wide area kept rising. With the population expected to shrink and age, city leaders concluded that this pattern could not continue.",
+        "Their response, beginning in the early 2000s, was to build what they called a compact city. Rather than forcing people to move, the city tried to make living near public transport more attractive. In 2006, an underused railway line was converted into a modern light rail system with frequent, low-floor trams. The city also offered financial support to people who built or bought homes along transit routes, and it encouraged older residents to go out by offering them cheaper fares.",
+        "The results have been mixed but encouraging. The share of residents living near public transport has gradually increased, and the city center has regained some of its liveliness. Still, most residents continue to depend on cars, and critics note that the policy benefits some neighborhoods more than others. Toyama's experience suggests that reshaping a city is possible, but only slowly, over decades rather than years."
+      ],
+      questions: [
+        {
+          type: "Detail",
+          q: "Why did Toyama's leaders decide the city had to change?",
+          options: [
+            "Too many people were moving into the center.",
+            "The cost of services across a wide area kept rising as the population aged and shrank.",
+            "The railway company asked the city for help.",
+            "Cars were banned in the city center."
+          ],
+          correct: 1,
+          evidence: "the cost of maintaining roads, water pipes, and other services across a wide area kept rising",
+          explain: "郊外に広がった結果、広い範囲のインフラ維持費が増え続け、しかも人口減少・高齢化が見込まれていた、という理由です。"
+        },
+        {
+          type: "Detail",
+          q: "What was the city's basic approach?",
+          options: [
+            "Forcing residents to move to the center",
+            "Making life near public transport more attractive",
+            "Building more highways in the suburbs",
+            "Raising the price of train tickets"
+          ],
+          correct: 1,
+          evidence: "Rather than forcing people to move",
+          explain: "Rather than A, B（Aではなく B）。強制ではなく、公共交通沿いに住む魅力を高める方法をとりました。"
+        },
+        {
+          type: "Reading skill",
+          q: "What is the role of paragraph 3?",
+          options: [
+            "To describe the history of Toyama before 1900",
+            "To evaluate the results of the policy",
+            "To explain how trams are built",
+            "To introduce a new policy for the future"
+          ],
+          correct: 1,
+          evidence: "The results have been mixed but encouraging.",
+          explain: "第1段落＝問題、第2段落＝対策、第3段落＝結果の評価。段落の役割を追う問題です。"
+        },
+        {
+          type: "Inference",
+          q: "Which best describes the writer's view of Toyama's policy?",
+          options: [
+            "A complete failure",
+            "A quick and total success",
+            "A partly successful effort that needs a long time",
+            "An idea that no other city should copy"
+          ],
+          correct: 2,
+          evidence: "reshaping a city is possible, but only slowly, over decades rather than years",
+          explain: "mixed but encouraging（まだら模様だが希望が持てる）、そして「数年でなく数十年かけてゆっくり」。Cが筆者の見方に合います。"
+        }
+      ],
+      summaryPrompt: "富山市が何をしたか、その結果どうだったかを、2文程度の英語でまとめてみましょう。"
+    }
+  ];
+
+  /* ---------- sets: 2 Standard + 2 Advanced, least-read first ---------- */
+  const SET_SIZE_PER_LEVEL = 2;
+  const SEEN_KEY = "reading-lamp-seen";
+  const LETTERS = "ABCD";
+  function loadSeen() { try { return JSON.parse(localStorage.getItem(SEEN_KEY)) || {}; } catch (e) { return {}; } }
+  function saveSeen(s) { try { localStorage.setItem(SEEN_KEY, JSON.stringify(s)); } catch (e) {} }
+  let seen = loadSeen();
+
+  function pickSet(exclude) {
+    const pick = level => POOL
+      .filter(p => p.level === level)
+      .map(p => ({ p, n: (seen[p.title] || 0) + (exclude.includes(p.title) ? 100 : 0), r: Math.random() }))
+      .sort((a, b) => a.n - b.n || a.r - b.r)
+      .slice(0, SET_SIZE_PER_LEVEL)
+      .map(x => x.p);
+    const s = pick("Standard"), a = pick("Advanced"), out = [];
+    for (let i = 0; i < SET_SIZE_PER_LEVEL; i++) out.push(s[i], a[i]);
+    return out.map(p => ({ ...p, questions: p.questions.map(shuffleQuestion) }));
+  }
+
+  // Shuffle option order; letters mentioned in the explanation (e.g. "Bが正解", "A・Bは") follow the new order.
+  function shuffleQuestion(q) {
+    const order = q.options.map((_, i) => i);
+    for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+    const newPos = [];
+    order.forEach((oldIdx, newIdx) => { newPos[oldIdx] = newIdx; });
+    const explain = q.explain.replace(/(^|[^A-Za-z])([A-D])(?=[・はがのと])/g,
+      (m, pre, L) => pre + LETTERS[newPos[LETTERS.indexOf(L)]]);
+    return { ...q, options: order.map(i => q.options[i]), correct: newPos[q.correct], explain };
+  }
+
+  let setNo = 1;
+  let PASSAGES = pickSet([]);
+  let pIdx = 0;
+  let timer = null;               // {start, handle}
+  let wpmResults, quizState;
+  function resetSetState() {
+    pIdx = 0;
+    wpmResults = PASSAGES.map(() => null);
+    quizState = PASSAGES.map(p => new Array(p.questions.length).fill(null));
+  }
+  resetSetState();
+
+  let sampleFn = null;
+  (async () => {
+    try {
+      if (typeof claude !== "undefined" && claude && claude.use) sampleFn = await claude.use("sample");
+    } catch (e) { sampleFn = null; }
+  })();
+
+  const app = document.getElementById("app");
+  const passageCountEl = document.getElementById("passageCount");
+
+  const wordCount = p => p.paras.join(" ").trim().split(/\s+/).length;
+  const fmtClock = ms => { const s = Math.floor(ms / 1000); return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`; };
+  const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+  function paraHTML(p) {
+    return p.paras.map((text, i) => {
+      let html = esc(text);
+      p.questions.forEach((q, qi) => {
+        const e = esc(q.evidence);
+        const at = html.indexOf(e);
+        if (at >= 0) html = html.slice(0, at) + `<span class="ev" id="ev-${qi}">${e}</span>` + html.slice(at + e.length);
+      });
+      return `<p><span class="para-no">¶${i + 1}</span>${html}</p>`;
+    }).join("");
+  }
+
+  function renderPassage() {
+    stopTimer(true);
+    passageCountEl.textContent = `Set ${setNo} · ${pIdx + 1} / ${PASSAGES.length}`;
+    const p = PASSAGES[pIdx];
+    const last = pIdx === PASSAGES.length - 1;
+    const adv = p.level === "Advanced";
+
+    app.innerHTML = `
+      <div class="card">
+        <div class="card-head">
+          <div class="chips">
+            <span class="level ${adv ? "adv" : ""}">${p.level}</span>
+            <span class="tag">${p.tag}</span>
+          </div>
+          <div class="timer" id="timer"></div>
+        </div>
+        <h2 class="title">${p.title}</h2>
+        <div class="meta-line">${wordCount(p)} words · ${p.paras.length} paragraphs</div>
+        <div class="passage-text">${paraHTML(p)}</div>
+      </div>
+      <div class="card">
+        <div class="section-label">Questions</div>
+        <div id="quizItems"></div>
+        <details class="bonus" id="bonus">
+          <summary>おまけ：英語で要約してみる（任意）</summary>
+          <div class="bonus-body">
+            <p>${p.summaryPrompt}</p>
+            <textarea class="summary-box" id="summaryBox-${setNo}-${pIdx}" maxlength="600" placeholder="Write one or two sentences in English..."></textarea>
+            <div><button class="secondary" id="feedbackBtn">AIに講評してもらう</button></div>
+            <div id="feedbackOut"></div>
+          </div>
+        </details>
+        <div class="advance-row">
+          <span class="advance-hint" id="advanceHint">4問すべて答えると進めます</span>
+          <button class="primary" id="advanceBtn" disabled>${last ? "このセットの結果を見る" : "次の文章へ"}</button>
+        </div>
+      </div>
+    `;
+
+    renderTimerIdle();
+    renderQuiz(p);
+    document.getElementById("feedbackBtn").addEventListener("click", () => requestFeedback(p));
+    document.getElementById("advanceBtn").addEventListener("click", advance);
+  }
+
+  /* ---------- optional timer ---------- */
+  function renderTimerIdle() {
+    const el = document.getElementById("timer");
+    const prev = wpmResults[pIdx];
+    el.innerHTML = prev
+      ? `<span class="wpm">${prev} WPM</span><button id="timerBtn">もう一度計る</button>`
+      : `<button id="timerBtn">⏱ 時間を計る</button>`;
+    document.getElementById("timerBtn").addEventListener("click", startTimer);
+  }
+  function startTimer() {
+    const el = document.getElementById("timer");
+    timer = { start: Date.now(), handle: null };
+    el.innerHTML = `<span class="dot"></span><span id="clockText">00:00</span><button id="timerBtn">読み終えた</button>`;
+    timer.handle = setInterval(() => {
+      const c = document.getElementById("clockText");
+      if (c) c.textContent = fmtClock(Date.now() - timer.start);
+    }, 1000);
+    document.getElementById("timerBtn").addEventListener("click", () => stopTimer(false));
+  }
+  function stopTimer(silent) {
+    if (!timer) return;
+    clearInterval(timer.handle);
+    const minutes = Math.max((Date.now() - timer.start) / 60000, 0.05);
+    timer = null;
+    if (silent) return;
+    wpmResults[pIdx] = Math.round(wordCount(PASSAGES[pIdx]) / minutes);
+    renderTimerIdle();
+  }
+
+  /* ---------- questions ---------- */
+  function renderQuiz(p) {
+    const itemsEl = document.getElementById("quizItems");
+    p.questions.forEach((q, qi) => {
+      const item = document.createElement("div");
+      item.className = "quiz-item";
+      item.innerHTML = `<p class="quiz-q"><span class="qtype">Q${qi + 1} · ${q.type}</span>${esc(q.q)}</p><div class="options"></div>`;
+      const optsEl = item.querySelector(".options");
+      q.options.forEach((opt, oi) => {
+        const btn = document.createElement("button");
+        btn.className = "option";
+        btn.innerHTML = `<span class="letter">${LETTERS[oi]}</span><span>${esc(opt)}</span>`;
+        btn.addEventListener("click", () => answer(qi, oi, item, q));
+        optsEl.appendChild(btn);
+      });
+      itemsEl.appendChild(item);
+      const prev = quizState[pIdx][qi];
+      if (prev !== null) showAnswer(qi, prev, item, q);
+    });
+    updateAdvance();
+  }
+
+  function answer(qi, oi, item, q) {
+    if (quizState[pIdx][qi] !== null) return;
+    quizState[pIdx][qi] = oi;
+    showAnswer(qi, oi, item, q);
+    updateAdvance();
+  }
+
+  function showAnswer(qi, oi, item, q) {
+    const ok = oi === q.correct;
+    const buttons = item.querySelectorAll(".option");
+    buttons.forEach(b => (b.disabled = true));
+    buttons[q.correct].classList.add("correct");
+    if (!ok) buttons[oi].classList.add("incorrect");
+
+    const ev = document.getElementById(`ev-${qi}`);
+    if (ev) {
+      ev.classList.add("on");
+      if (!ev.querySelector(".ev-tag")) ev.insertAdjacentHTML("beforeend", `<span class="ev-tag">Q${qi + 1}</span>`);
+    }
+    const para = PASSAGES[pIdx].paras.findIndex(t => t.includes(q.evidence)) + 1;
+    const ex = document.createElement("div");
+    ex.className = `explain ${ok ? "correct" : "incorrect"}`;
+    ex.innerHTML = `${ok ? "正解。" : `正解は ${LETTERS[q.correct]}。`}${esc(q.explain)}` +
+      (para ? `<span class="evnote">根拠：本文 ¶${para} の <b>Q${qi + 1}</b> の箇所</span>` : "");
+    item.appendChild(ex);
+  }
+
+  function updateAdvance() {
+    const done = quizState[pIdx].every(v => v !== null);
+    document.getElementById("advanceBtn").disabled = !done;
+    document.getElementById("advanceHint").hidden = done;
+  }
+
+  /* ---------- optional summary ---------- */
+  function buildFeedbackPrompt(passage, summaryText) {
+    const lvl = passage.level === "Advanced" ? "Eiken Grade 2 to Pre-1, CEFR B1-B2" : "Eiken Grade 2, CEFR B1";
+    return `You are an English teacher helping a Japanese adult learner (around ${lvl}) practice short summary writing.
+
+Passage:
+"""
+${passage.paras.join("\n\n")}
+"""
+
+Student's summary (English):
+"""
+${summaryText}
+"""
+
+Respond in Japanese, in 3 to 4 short sentences:
+1. Does the summary capture the main point? Mention one missing point if any.
+2. One brief note on the English (grammar, word choice, or a more natural phrasing), only if useful. Show the improved sentence.
+3. A rough score out of 100.
+
+Be concise and encouraging.`;
+  }
+
+  async function requestFeedback(passage) {
+    const text = document.getElementById(`summaryBox-${setNo}-${pIdx}`).value.trim();
+    const btn = document.getElementById("feedbackBtn");
+    const out = document.getElementById("feedbackOut");
+    if (!text) { out.innerHTML = `<div class="feedback-panel">先に英文を入力してください。</div>`; return; }
+    if (!sampleFn) { out.innerHTML = `<div class="feedback-panel">この環境ではAI講評機能を利用できません。</div>`; return; }
+
+    btn.disabled = true;
+    out.innerHTML = `<div class="feedback-panel">講評を書いています…</div>`;
+    const panel = out.querySelector(".feedback-panel");
+    try {
+      const { text: reply } = await sampleFn(buildFeedbackPrompt(passage, text), {
+        modelTier: "default",
+        onText: ({ text: t }) => { panel.textContent = t; }
+      });
+      panel.textContent = reply;
+    } catch (e) {
+      if (e.code === "cancelled") panel.textContent = e.text || "";
+      else if (["not_granted", "sampling_disabled", "not_declared", "capability_disabled", "capability_removed"].includes(e.code)) {
+        sampleFn = null; panel.textContent = "この環境ではAI講評機能を利用できません。";
+      } else if (e.code === "rate_limited") panel.textContent = "少し時間をおいてからもう一度お試しください。";
+      else panel.textContent = "講評を取得できませんでした。もう一度お試しください。";
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  /* ---------- flow ---------- */
+  function advance() {
+    stopTimer(true);
+    const done = PASSAGES[pIdx].title;
+    seen[done] = (seen[done] || 0) + 1;
+    saveSeen(seen);
+    pIdx++;
+    if (pIdx < PASSAGES.length) renderPassage();
+    else renderResults();
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }
+
+  function renderResults() {
+    passageCountEl.textContent = `Set ${setNo} · 完了`;
+    const correct = PASSAGES.map((p, i) => p.questions.filter((q, qi) => quizState[i][qi] === q.correct).length);
+    const byLevel = lvl => {
+      const idx = PASSAGES.map((p, i) => p.level === lvl ? i : -1).filter(i => i >= 0);
+      return [idx.reduce((a, i) => a + correct[i], 0), idx.reduce((a, i) => a + PASSAGES[i].questions.length, 0)];
+    };
+    const [sc, st] = byLevel("Standard"), [ac, at] = byLevel("Advanced");
+    const timed = wpmResults.filter(Boolean);
+    const avg = timed.length ? Math.round(timed.reduce((a, b) => a + b, 0) / timed.length) : null;
+    const readCount = POOL.filter(p => seen[p.title]).length;
+
+    app.innerHTML = `
+      <div class="card results">
+        <div class="big">${sc + ac} / ${st + at}</div>
+        <div class="big-label">Set ${setNo} の正答数（Standard ${sc}/${st} · Advanced ${ac}/${at}）</div>
+        <div class="breakdown">
+          ${PASSAGES.map((p, i) => `<div class="breakdown-row"><span class="label"><span class="level mini ${p.level === "Advanced" ? "adv" : ""}">${p.level === "Advanced" ? "A" : "S"}</span>${p.title}</span><span class="val">${correct[i]}/${p.questions.length}${wpmResults[i] ? ` · ${wpmResults[i]} WPM` : ""}</span></div>`).join("")}
+          ${avg ? `<div class="breakdown-row"><span class="label">平均読書速度（計った文章のみ）</span><span class="val">${avg} WPM</span></div>` : ""}
+        </div>
+        <div class="result-actions">
+          <button class="primary" id="nextSetBtn">次のセットへ</button>
+          <button class="secondary" id="retryBtn">このセットをもう一度</button>
+        </div>
+        <p class="pool-note">全${POOL.length}題中 ${readCount}題を読みました。まだ読んでいない文章から優先して出します。</p>
+      </div>
+    `;
+    document.getElementById("nextSetBtn").addEventListener("click", () => {
+      const prevTitles = PASSAGES.map(p => p.title);
+      PASSAGES = pickSet(prevTitles);
+      setNo++;
+      resetSetState();
+      renderPassage();
+    });
+    document.getElementById("retryBtn").addEventListener("click", () => {
+      resetSetState();
+      renderPassage();
+    });
+  }
+
+  renderPassage();
+</script>
+
+</body></html>

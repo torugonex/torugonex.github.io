@@ -1,0 +1,627 @@
+<!doctype html><html lang="ja"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found]){display:none!important}</style></head><body>
+<title>Red Pen</title>
+<meta name="description" content="A red-pen-graded English quiz mixing vocabulary, grammar, reading, and idioms at Eiken Grade 2 to Pre-1 level.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+  :root {
+    --paper: #F1F2ED;
+    --paper-raised: #FFFFFF;
+    --ink: #23262A;
+    --ink-soft: #5B6067;
+    --ink-faint: #8A8F94;
+    --line: #DADCD3;
+    --accent: #2B4A73;
+    --accent-soft: #E5EAF1;
+    --good: #2F7D4F;
+    --good-soft: #E3F1E8;
+    --bad: #B23A2E;
+    --bad-soft: #FBE7E4;
+    --shadow: 0 1px 2px rgba(35,38,42,0.06), 0 8px 24px -12px rgba(35,38,42,0.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #1A1C1E;
+      --paper-raised: #232629;
+      --ink: #E9E7E1;
+      --ink-soft: #A7ACB1;
+      --ink-faint: #74797E;
+      --line: #35383C;
+      --accent: #8CB0DD;
+      --accent-soft: #26364A;
+      --good: #74CC97;
+      --good-soft: #1E3327;
+      --bad: #E48579;
+      --bad-soft: #3A211E;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #1A1C1E;
+    --paper-raised: #232629;
+    --ink: #E9E7E1;
+    --ink-soft: #A7ACB1;
+    --ink-faint: #74797E;
+    --line: #35383C;
+    --accent: #8CB0DD;
+    --accent-soft: #26364A;
+    --good: #74CC97;
+    --good-soft: #1E3327;
+    --bad: #E48579;
+    --bad-soft: #3A211E;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", "Hiragino Kaku Gothic ProN", sans-serif;
+    min-height: 100vh;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+
+  .wrap {
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 28px 18px 60px;
+  }
+
+  header.top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  header.top h1 {
+    font-family: "Fraunces", Georgia, serif;
+    font-weight: 600;
+    font-size: clamp(1.3rem, 5vw, 1.6rem);
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+  header.top .score-tally {
+    font-family: "IBM Plex Mono", monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+
+  .dots {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 26px;
+  }
+  .dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1.6px solid var(--line);
+    background: transparent;
+    flex: 0 0 auto;
+    transition: background-color .15s ease, border-color .15s ease, transform .15s ease;
+  }
+  .dot.current { border-color: var(--accent); transform: scale(1.15); }
+  .dot.correct { background: var(--good); border-color: var(--good); }
+  .dot.incorrect { background: var(--bad); border-color: var(--bad); }
+
+  .card {
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 26px 24px;
+    box-shadow: var(--shadow);
+  }
+
+  .tag {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 4px 10px;
+    border-radius: 999px;
+    margin-bottom: 14px;
+  }
+
+  .passage {
+    font-family: "Fraunces", Georgia, serif;
+    font-size: 0.98rem;
+    line-height: 1.65;
+    color: var(--ink-soft);
+    border-left: 3px solid var(--line);
+    padding: 2px 0 2px 14px;
+    margin-bottom: 16px;
+  }
+
+  .question {
+    font-family: "Fraunces", Georgia, serif;
+    font-weight: 500;
+    font-size: clamp(1.05rem, 4.2vw, 1.22rem);
+    line-height: 1.5;
+    text-wrap: balance;
+    margin-bottom: 20px;
+  }
+  .question .blank {
+    display: inline-block;
+    min-width: 3.2em;
+    border-bottom: 1.6px solid var(--ink-faint);
+  }
+
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .option {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    width: 100%;
+    text-align: left;
+    background: var(--paper);
+    border: 1.4px solid var(--line);
+    border-radius: 10px;
+    padding: 13px 14px;
+    font-family: "IBM Plex Sans", sans-serif;
+    font-size: 0.98rem;
+    line-height: 1.4;
+    color: var(--ink);
+    cursor: pointer;
+    transition: border-color .15s ease, background-color .15s ease;
+  }
+  .option:hover:not(:disabled) { border-color: var(--accent); }
+  .option:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .option:disabled { cursor: default; }
+
+  .bubble {
+    position: relative;
+    flex: 0 0 auto;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1.6px solid var(--ink-faint);
+    margin-top: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .bubble .letter {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.68rem;
+    color: var(--ink-faint);
+  }
+  .option.selected .bubble { background: var(--ink); border-color: var(--ink); }
+  .option.selected .bubble .letter { color: var(--paper-raised); }
+
+  .option.reveal-correct { background: var(--good-soft); border-color: var(--good); }
+  .option.reveal-incorrect { background: var(--bad-soft); border-color: var(--bad); }
+  .option.reveal-correct .bubble { border-color: var(--good); }
+  .option.reveal-incorrect .bubble { border-color: var(--bad); }
+
+  .mark {
+    position: absolute;
+    inset: -6px;
+    pointer-events: none;
+  }
+  .mark svg { width: 100%; height: 100%; overflow: visible; }
+  .mark.circle svg circle {
+    fill: none; stroke: var(--good); stroke-width: 2.2;
+    stroke-dasharray: 72; stroke-dashoffset: 72;
+    animation: draw .4s ease forwards;
+  }
+  .mark.cross svg line {
+    stroke: var(--bad); stroke-width: 2.4; stroke-linecap: round;
+    stroke-dasharray: 20; stroke-dashoffset: 20;
+    animation: draw .25s ease forwards;
+  }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+
+  .feedback {
+    margin-top: 18px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    border-left: 3px solid var(--line);
+    background: var(--paper);
+    font-size: 0.92rem;
+    line-height: 1.65;
+    color: var(--ink-soft);
+  }
+  .feedback.correct { border-left-color: var(--good); }
+  .feedback.incorrect { border-left-color: var(--bad); }
+  .feedback strong { color: var(--ink); }
+
+  .actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 18px;
+  }
+  button.next, button.restart {
+    font-family: "IBM Plex Sans", sans-serif;
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: var(--paper-raised);
+    background: var(--accent);
+    border: none;
+    border-radius: 8px;
+    padding: 11px 20px;
+    cursor: pointer;
+    transition: opacity .15s ease;
+  }
+  button.next:hover, button.restart:hover { opacity: 0.88; }
+  button.next:focus-visible, button.restart:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+  .results { text-align: center; padding: 10px 4px 4px; }
+  .stamp-wrap {
+    position: relative;
+    width: 132px;
+    height: 132px;
+    margin: 6px auto 18px;
+  }
+  .stamp-wrap .fraction {
+    font-family: "IBM Plex Mono", monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 1.7rem;
+    font-weight: 600;
+  }
+  .stamp-wrap .pct { font-size: 0.78rem; color: var(--ink-soft); margin-top: 2px; }
+  .stamp-ring {
+    position: absolute;
+    inset: 0;
+    border: 3px solid var(--bad);
+    border-radius: 50%;
+    transform: rotate(-8deg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--bad);
+  }
+  .stamp-note {
+    font-family: "Fraunces", Georgia, serif;
+    font-size: 1.05rem;
+    color: var(--bad);
+    margin-bottom: 18px;
+    transform: rotate(-2deg);
+  }
+  .breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 4px 0 24px;
+    text-align: left;
+  }
+  .breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 9px 14px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-size: 0.88rem;
+  }
+  .breakdown-row .label { color: var(--ink-soft); }
+  .breakdown-row .val { font-family: "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; }
+
+  [hidden] { display: none !important; }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <h1>Red Pen</h1>
+    <div class="score-tally" id="tally">SCORE 0/15</div>
+  </header>
+
+  <div class="dots" id="dots"></div>
+
+  <main class="card" id="quizCard">
+    <span class="tag" id="tag">Vocabulary</span>
+    <div class="passage" id="passage" hidden></div>
+    <p class="question" id="questionText"></p>
+    <div class="options" id="options"></div>
+    <div class="feedback" id="feedback" hidden></div>
+    <div class="actions" id="actions" hidden>
+      <button class="next" id="nextBtn">次の問題へ</button>
+    </div>
+  </main>
+
+  <main class="card results" id="resultsCard" hidden>
+    <div class="stamp-wrap">
+      <div class="stamp-ring" id="stampRing" hidden>
+        <span class="fraction" id="finalScore"></span>
+        <span class="pct" id="finalPct"></span>
+      </div>
+      <div id="plainScore" hidden>
+        <span class="fraction" id="finalScore2"></span>
+        <div class="pct" id="finalPct2"></div>
+      </div>
+    </div>
+    <p class="stamp-note" id="stampNote" hidden>よくできました</p>
+    <div class="breakdown" id="breakdown"></div>
+    <button class="restart" id="restartBtn">もう一度挑戦する</button>
+  </main>
+</div>
+
+<script>
+  const QUESTIONS = [
+    {
+      category: "Vocabulary",
+      question: 'Her explanation was so <span class="blank"></span> that even the experts in the room struggled to follow the logic.',
+      options: ["convoluted", "lucid", "succinct", "mundane"],
+      correct: 0,
+      explanation: '<strong>convoluted</strong> = 込み入って分かりにくい、複雑な。「専門家でさえ論理を追うのに苦労した」という文脈に合います。<strong>lucid</strong>(明快な)はほぼ正反対の意味なので注意。succinct = 簡潔な、mundane = 平凡な。'
+    },
+    {
+      category: "Grammar",
+      question: "If she ______ earlier, she wouldn't have missed the flight.",
+      options: ["leaves", "had left", "left", "would leave"],
+      correct: 1,
+      explanation: '仮定法過去完了(third conditional): <strong>If + 主語 + had + 過去分詞 〜, 主語 + would have + 過去分詞 …</strong>。過去の事実に反する仮定を表します。実際には早く出発しなかったので、飛行機に乗り遅れた、という意味です。'
+    },
+    {
+      category: "Vocabulary",
+      question: "The committee's decision was widely criticized as ______, favoring one department over another without any clear justification.",
+      options: ["impartial", "unanimous", "arbitrary", "meticulous"],
+      correct: 2,
+      explanation: '<strong>arbitrary</strong> = 恣意的な、正当な理由のない。「明確な根拠なく一方を優遇した」という文脈に合います。<strong>impartial</strong>(公平な)は逆の意味。unanimous = 満場一致の、meticulous = 細心の注意を払った。'
+    },
+    {
+      category: "Reading",
+      passage: 'In recent years, an unlikely trend has taken hold in cities around the world: rooftop beekeeping. Advocates argue that urban bees, surprisingly, often outproduce their rural counterparts, thanks to the diverse array of flowers found in parks and gardens. Critics, however, caution that concentrating too many hives in a small area can strain local pollinator populations, potentially harming the very ecosystems the practice aims to support.',
+      question: "What concern do critics raise about urban beekeeping?",
+      options: [
+        "Urban bees produce less honey than rural bees",
+        "City flowers are not diverse enough for bees",
+        "Beekeeping is illegal in most cities",
+        "Too many hives in one area may harm local pollinators"
+      ],
+      correct: 3,
+      explanation: '本文最後の一文が根拠です。批判派は、一箇所に巣箱を集めすぎると地域の花粉媒介者(ポリネーター)の個体群に負担をかけかねないと懸念しています。'
+    },
+    {
+      category: "Grammar",
+      question: 'The book, ______ I borrowed from the library, is due next week.',
+      options: ["which", "that", "who", "whom"],
+      correct: 0,
+      explanation: '非制限用法(コンマで区切られ、先行詞を補足説明するだけの関係詞節)には <strong>that</strong> は使えません。ここでは"The book"がすでに特定されており、後ろの節は追加情報なので、コンマ + <strong>which</strong> が正解です。'
+    },
+    {
+      category: "Idiom",
+      question: 'Even though she had doubts, she decided to ______ and accept the challenging new role.',
+      options: ["beat around the bush", "bite the bullet", "let the cat out of the bag", "jump on the bandwagon"],
+      correct: 1,
+      explanation: '<strong>bite the bullet</strong> = (気が進まなくても)覚悟を決めて立ち向かう。beat around the bush = 遠回しに言う、let the cat out of the bag = 秘密を漏らす、jump on the bandwagon = 流行に飛び乗る。'
+    },
+    {
+      category: "Vocabulary",
+      question: "The novel's plot was so ______ that readers struggled to keep track of all the characters and subplots.",
+      options: ["linear", "predictable", "intricate", "superficial"],
+      correct: 2,
+      explanation: '<strong>intricate</strong> = 複雑に入り組んだ。「登場人物やサブプロットを把握するのに苦労した」という内容に合います。linear = 一直線の、predictable = 予測可能な、superficial = 表面的な、はいずれも文意と合いません。'
+    },
+    {
+      category: "Grammar",
+      question: 'I need to ______ my car repaired before the trip next week.',
+      options: ["has", "having", "had", "have"],
+      correct: 3,
+      explanation: '使役表現 <strong>have + 目的語 + 過去分詞</strong>(〜してもらう/される)。主語が I で現在の話なので原形 have を使います。"have my car repaired" = 車を修理してもらう。'
+    },
+    {
+      category: "Reading",
+      passage: "As artificial intelligence tools become embedded in daily workflows, a curious paradox has emerged: employees report saving time on routine tasks, yet many say they feel busier than ever. Researchers suggest this is because the time saved is often reallocated to new responsibilities rather than rest, a phenomenon some have dubbed 'productivity creep.' Efficiency gains alone, they argue, do not guarantee a lighter workload.",
+      question: "According to the passage, why do employees feel busier despite saving time with AI tools?",
+      options: [
+        "Saved time gets filled with additional responsibilities",
+        "AI tools are too difficult to use",
+        "Employees are required to work longer hours",
+        "AI tools have made their jobs obsolete"
+      ],
+      correct: 0,
+      explanation: '本文の "the time saved is often reallocated to new responsibilities rather than rest" が根拠です。節約できた時間が休息ではなく新たな業務に振り分けられるため、忙しく感じる、という内容です。'
+    },
+    {
+      category: "Vocabulary",
+      question: "Despite mounting criticism, he remained ______ in his belief that the plan would ultimately succeed.",
+      options: ["ambivalent", "adamant", "reluctant", "indifferent"],
+      correct: 1,
+      explanation: '<strong>adamant</strong> = 断固とした、意志を曲げない。「批判が高まっても計画が成功するという信念を崩さなかった」という文脈に合います。ambivalent = 相反する感情を持つ、indifferent = 無関心な。'
+    },
+    {
+      category: "Grammar",
+      question: "The manager insisted that the report ______ submitted by Friday.",
+      options: ["is", "was", "be", "will be"],
+      correct: 2,
+      explanation: 'insist / suggest / demand などの動詞に続く that節では、仮定法現在(should の省略形で動詞の原形)を使います。"insisted that the report <strong>be</strong> submitted" = 「報告書が提出されるべきだと主張した」。'
+    },
+    {
+      category: "Idiom",
+      question: 'After the scandal, the company worked hard to ______ and rebuild its reputation.',
+      options: ["spill the beans", "add fuel to the fire", "cut corners", "turn over a new leaf"],
+      correct: 3,
+      explanation: '<strong>turn over a new leaf</strong> = 心を入れ替えて再出発する。スキャンダルの後に評判を立て直そうとする文脈に合います。spill the beans = 秘密を漏らす、add fuel to the fire = 火に油を注ぐ、cut corners = 手を抜く。'
+    },
+    {
+      category: "Vocabulary",
+      question: "The evidence presented was so ______ that the defense had no real counterargument.",
+      options: ["irrefutable", "ambiguous", "redundant", "trivial"],
+      correct: 0,
+      explanation: '<strong>irrefutable</strong> = 反論の余地がない。「被告側に実質的な反論の余地がなかった」という文脈に合います。ambiguous = 曖昧な、redundant = 冗長な、trivial = 些細な。'
+    },
+    {
+      category: "Grammar",
+      question: 'Not only ______ the exam, but she also received a scholarship for her outstanding score.',
+      options: ["she passed", "did she pass", "passed she", "she did pass"],
+      correct: 1,
+      explanation: '"Not only" のような否定的な副詞(句)が文頭に出ると、主語と助動詞の倒置が起こります: <strong>"Not only did she pass the exam, but she also received..."</strong>。'
+    },
+    {
+      category: "Reading",
+      passage: "A growing body of research suggests that chronic sleep deprivation does more than leave people groggy—it measurably impairs decision-making and creativity. Yet in many workplaces, exhaustion is still worn as a badge of honor, a tacit signal of dedication. Some companies have begun to push back against this culture, experimenting with nap rooms and flexible hours.",
+      question: 'What does the phrase "worn as a badge of honor" suggest about exhaustion in many workplaces?',
+      options: [
+        "It is treated as something shameful",
+        "It is officially discouraged by management",
+        "It is seen as a sign of hard work and commitment",
+        "It is rewarded with extra vacation days"
+      ],
+      correct: 2,
+      explanation: '"worn as a badge of honor" は「(誇るべき)勲章として身につける」という比喩表現で、ここでは疲労困憊がかえって努力・献身の証として見なされている、という意味です。'
+    }
+  ];
+
+  let idx = 0;
+  let score = 0;
+  const results = new Array(QUESTIONS.length).fill(null);
+
+  const dotsEl = document.getElementById('dots');
+  const tallyEl = document.getElementById('tally');
+  const tagEl = document.getElementById('tag');
+  const passageEl = document.getElementById('passage');
+  const questionEl = document.getElementById('questionText');
+  const optionsEl = document.getElementById('options');
+  const feedbackEl = document.getElementById('feedback');
+  const actionsEl = document.getElementById('actions');
+  const nextBtn = document.getElementById('nextBtn');
+  const quizCard = document.getElementById('quizCard');
+  const resultsCard = document.getElementById('resultsCard');
+  const restartBtn = document.getElementById('restartBtn');
+
+  function renderDots() {
+    dotsEl.innerHTML = '';
+    QUESTIONS.forEach((q, i) => {
+      const d = document.createElement('div');
+      d.className = 'dot';
+      if (i === idx) d.classList.add('current');
+      if (results[i] === true) d.classList.add('correct');
+      if (results[i] === false) d.classList.add('incorrect');
+      dotsEl.appendChild(d);
+    });
+  }
+
+  function letterFor(i) { return String.fromCharCode(65 + i); }
+
+  function renderQuestion() {
+    const q = QUESTIONS[idx];
+    tagEl.textContent = q.category;
+    if (q.passage) {
+      passageEl.textContent = q.passage;
+      passageEl.hidden = false;
+    } else {
+      passageEl.hidden = true;
+    }
+    questionEl.innerHTML = q.question;
+    optionsEl.innerHTML = '';
+    q.options.forEach((opt, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'option';
+      btn.innerHTML = `<span class="bubble"><span class="letter">${letterFor(i)}</span></span><span>${opt}</span>`;
+      btn.addEventListener('click', () => selectOption(i));
+      optionsEl.appendChild(btn);
+    });
+    feedbackEl.hidden = true;
+    feedbackEl.className = 'feedback';
+    actionsEl.hidden = true;
+    renderDots();
+    tallyEl.textContent = `SCORE ${score}/${QUESTIONS.length}`;
+  }
+
+  function selectOption(i) {
+    if (results[idx] !== null) return;
+    const q = QUESTIONS[idx];
+    const correct = i === q.correct;
+    results[idx] = correct;
+    if (correct) score++;
+
+    const buttons = optionsEl.querySelectorAll('.option');
+    buttons.forEach((b, bi) => { b.disabled = true; });
+
+    const chosenBtn = buttons[i];
+    chosenBtn.classList.add('selected');
+
+    const correctBtn = buttons[q.correct];
+    correctBtn.classList.add('reveal-correct');
+    const circleMark = document.createElement('span');
+    circleMark.className = 'mark circle';
+    circleMark.style.position = 'relative';
+    correctBtn.querySelector('.bubble').innerHTML += `<span class="mark circle"><svg viewBox="0 0 22 22"><circle cx="11" cy="11" r="9.5"/></svg></span>`;
+
+    if (!correct) {
+      chosenBtn.classList.add('reveal-incorrect');
+      chosenBtn.querySelector('.bubble').innerHTML += `<span class="mark cross"><svg viewBox="0 0 22 22"><line x1="6" y1="6" x2="16" y2="16"/><line x1="16" y1="6" x2="6" y2="16"/></svg></span>`;
+    }
+
+    feedbackEl.innerHTML = q.explanation;
+    feedbackEl.hidden = false;
+    feedbackEl.classList.add(correct ? 'correct' : 'incorrect');
+
+    actionsEl.hidden = false;
+    nextBtn.textContent = idx === QUESTIONS.length - 1 ? '結果を見る' : '次の問題へ';
+
+    tallyEl.textContent = `SCORE ${score}/${QUESTIONS.length}`;
+    renderDots();
+  }
+
+  nextBtn.addEventListener('click', () => {
+    idx++;
+    if (idx < QUESTIONS.length) {
+      renderQuestion();
+    } else {
+      showResults();
+    }
+  });
+
+  function showResults() {
+    quizCard.hidden = true;
+    resultsCard.hidden = false;
+    const pct = Math.round((score / QUESTIONS.length) * 100);
+    const isGreat = pct >= 80;
+
+    document.getElementById('stampRing').hidden = !isGreat;
+    document.getElementById('plainScore').hidden = isGreat;
+    document.getElementById('stampNote').hidden = !isGreat;
+
+    if (isGreat) {
+      document.getElementById('finalScore').textContent = `${score}/${QUESTIONS.length}`;
+      document.getElementById('finalPct').textContent = `${pct}%`;
+    } else {
+      document.getElementById('finalScore2').textContent = `${score}/${QUESTIONS.length}`;
+      document.getElementById('finalPct2').textContent = `${pct}%`;
+    }
+
+    const cats = {};
+    QUESTIONS.forEach((q, i) => {
+      if (!cats[q.category]) cats[q.category] = { correct: 0, total: 0 };
+      cats[q.category].total++;
+      if (results[i]) cats[q.category].correct++;
+    });
+    const breakdownEl = document.getElementById('breakdown');
+    breakdownEl.innerHTML = '';
+    Object.entries(cats).forEach(([cat, v]) => {
+      const row = document.createElement('div');
+      row.className = 'breakdown-row';
+      row.innerHTML = `<span class="label">${cat}</span><span class="val">${v.correct}/${v.total}</span>`;
+      breakdownEl.appendChild(row);
+    });
+  }
+
+  restartBtn.addEventListener('click', () => {
+    idx = 0;
+    score = 0;
+    results.fill(null);
+    resultsCard.hidden = true;
+    quizCard.hidden = false;
+    renderQuestion();
+  });
+
+  renderQuestion();
+</script>
+
+</body></html>
