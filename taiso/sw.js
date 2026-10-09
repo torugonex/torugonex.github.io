@@ -1,5 +1,5 @@
 // 朝の10分体操：一度開けば、以後はオフラインでも動く
-const CACHE = "taiso-v1";
+const CACHE = "taiso-v2";
 const FILES = ["./", "index.html", "manifest.webmanifest", "icon-192.png", "icon-512.png", "apple-touch-icon.png"];
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
