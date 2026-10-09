@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>朝の10分体操</title>
+<style>html{color-scheme:light}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<meta name="theme-color" content="#2f6f5e">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="10分体操">
+</head>
+<body>
+<style>
+/* Layout: 一本の縦スクロール。左に経過時間の目盛り、右に動作。読みながら体を動かせる大きめの文字 */
+:root{
+  --bg:#f3f5f2; --surface:#ffffff; --ink:#1f2a27; --muted:#5d6b66;
+  --accent:#2f6f5e; --accent-soft:#dcebe5; --line:#d5ddd9; --warn:#9a5b16;
+  --display:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
+  --body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141a18; --surface:#1c2421; --ink:#e4ebe8; --muted:#9fb0aa;
+  --accent:#7cc4ad; --accent-soft:#233a33; --line:#2e3a36; --warn:#e2a35c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141a18; --surface:#1c2421; --ink:#e4ebe8; --muted:#9fb0aa;
+  --accent:#7cc4ad; --accent-soft:#233a33; --line:#2e3a36; --warn:#e2a35c; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.8}
+.wrap{max-width:44rem;margin:0 auto;padding-inline:18px;padding-block:28px 56px}
+header h1{font-family:var(--display);font-size:2rem;line-height:1.3;margin:0 0 .4rem;text-wrap:balance}
+.lead{color:var(--muted);margin:0}
+.aims{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 0;padding:0;list-style:none}
+.aims li{background:var(--accent-soft);color:var(--accent);font-size:.85rem;font-weight:500;padding:3px 12px;border-radius:999px}
+.key{margin:26px 0 8px;padding:14px 16px;border-left:3px solid var(--accent);background:var(--surface)}
+.key b{color:var(--accent)}
+h2{font-family:var(--display);font-size:1.35rem;margin:36px 0 10px}
+ol.steps{list-style:none;margin:0;padding:0;display:grid;gap:0}
+.step{display:grid;grid-template-columns:4.2rem 1fr;gap:14px;padding-block:18px;border-top:1px solid var(--line)}
+.time{font-variant-numeric:tabular-nums;color:var(--muted);font-size:.85rem;line-height:1.4;padding-top:4px}
+.time strong{display:block;font-family:var(--display);font-size:1.4rem;color:var(--accent)}
+.step h3{margin:0 0 4px;font-size:1.12rem}
+.step .for{font-size:.8rem;color:var(--muted);letter-spacing:.04em;margin:0 0 6px}
+.step p{margin:0 0 6px}
+.step ul{margin:4px 0 0;padding-left:1.2em}
+.step li{margin:2px 0}
+.rep{display:inline-block;font-weight:700;color:var(--accent)}
+.tip{font-size:.92rem;color:var(--muted)}
+.short{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 18px}
+.short ol{margin:0;padding-left:1.3em}
+.caution{color:var(--ink)}
+.caution li{margin:4px 0}
+.caution strong{color:var(--warn)}
+footer{margin-top:36px;font-size:.85rem;color:var(--muted)}
+.key a{color:var(--accent)}
+h3.sub{font-size:1.05rem;margin:22px 0 6px}
+.how{margin:0;padding-left:1.4em}.how li{margin:4px 0}
+.pelvis{margin:12px 0 4px;max-width:360px}
+.pelvis svg{display:block;width:100%;height:auto;background:var(--surface);border:1px solid var(--line);border-radius:8px}
+.pelvis figcaption{font-size:.85rem;color:var(--muted);margin-top:6px}
+.pelvis .bone{fill:none;stroke:var(--muted);stroke-width:7;stroke-linecap:round}
+.pelvis .organ{fill:var(--accent-soft);stroke:var(--line);stroke-width:1.5}
+.pelvis .hammock{fill:none;stroke:var(--accent);stroke-width:6;stroke-linecap:round;transform-box:fill-box;transform-origin:center top;animation:lift 6s ease-in-out infinite}
+.pelvis .arrow{fill:none;stroke:var(--accent);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;opacity:.7}
+.pelvis text{font-family:var(--body);font-size:12px;fill:var(--muted)}
+.pelvis .olabel{font-size:11px;text-anchor:middle;fill:var(--ink)}
+.pelvis .lab.acc{fill:var(--accent);font-weight:700;text-anchor:middle}
+@keyframes lift{0%,20%{transform:scaleY(1)}50%,70%{transform:scaleY(.35)}100%{transform:scaleY(1)}}
+@media (prefers-reduced-motion:reduce){.pelvis .hammock{animation:none}}
+.fig{display:block;width:100%;max-width:240px;aspect-ratio:16/15;margin:6px 0 10px;background:var(--surface);border:1px solid var(--line);border-radius:8px}
+</style>
+
+<div class="wrap">
+<header>
+  <h1>朝の10分体操</h1>
+  <p class="lead">毎日の約10分。座って呼吸を整え、肩をほぐし、太極拳の五つの型で下半身と体幹を使い、かかと上げで脚を仕上げてから、ストレッチで締めます。太極拳の型は腰を落とす深さを浅めにしても大丈夫です。</p>
+  <ul class="aims"><li>体幹</li><li>大腿筋</li><li>骨盤底筋</li><li>肩こり</li></ul>
+</header>
+
+<div class="key">全体を通すコツは一つ。<b>力を入れる瞬間に息を吐き、同時に骨盤底を軽く引き上げる。</b>これで体幹と骨盤底筋が、どの動作にも自然に加わります。<a href="#pelvic">骨盤底の場所と引き上げ方は下で解説しています。</a></div>
+
+<h2 id="pelvic">骨盤底はどこにあるか</h2>
+<p>骨盤のいちばん底に、前の恥骨から後ろの尾骨まで、ハンモックのように張っている筋肉の層です。左右は、座ったときに座面に当たる二つの骨（坐骨）の間にあたります。膀胱や腸を下から支え、尿や便の出口を締める役目をしています。</p>
+<figure class="pelvis">
+  <svg viewBox="0 0 260 160" role="img" aria-label="骨盤を横から見た図。恥骨と尾骨の間に骨盤底筋がハンモックのように張り、息を吐くと上へ持ち上がる">
+    <path class="bone" d="M70 30 C55 60 60 95 82 118 M82 118 l-6 10 M190 34 C200 60 190 90 172 112"/>
+    <ellipse class="organ" cx="150" cy="86" rx="20" ry="16"/>
+    <text x="150" y="90" class="olabel">膀胱</text>
+    <path class="hammock" d="M80 120 Q128 156 172 114"/>
+    <path class="arrow" d="M128 150 V118 M121 125 L128 116 L135 125"/>
+    <text x="40" y="140" class="lab">尾骨</text>
+    <text x="196" y="122" class="lab">恥骨</text>
+    <text x="128" y="66" class="lab acc">骨盤底筋</text>
+    <text x="10" y="18" class="lab">背中側</text><text x="210" y="18" class="lab">お腹側</text>
+  </svg>
+  <figcaption>横から見た骨盤。吐く息に合わせて、底のハンモックを上へ引き上げます。</figcaption>
+</figure>
+
+<h3 class="sub">「引き上げる」のやり方</h3>
+<ol class="how">
+  <li>楽に座るか立つ。お尻と太ももの力は抜いておく。</li>
+  <li>尿やおならを我慢するときのように、出口をきゅっと締める。</li>
+  <li>締めたまま、そこをおへその方へ、体の内側へ吸い上げる。エレベーターが1階から2階へ上がる程度の小さな動きで十分です。</li>
+  <li>息は止めずに、吐きながら行う。保持したら、同じだけ時間をかけて完全にゆるめる。</li>
+</ol>
+
+<h3 class="sub">できているかの確かめ方</h3>
+<ul class="how">
+  <li>固めの椅子に座って行うと、肛門と性器の間（会陰）が座面から少し浮く感じがする。</li>
+  <li>男性は、陰嚢がわずかに持ち上がる感覚が目安になる。</li>
+  <li>下腹がほんの少し平らになる。お腹を外へ押し出す「いきむ」動きは逆です。</li>
+  <li>お尻・太もも・肩に力が入る、息が止まる場合は、締める力を半分にしてみる。</li>
+</ul>
+<p class="tip">実際の排尿の途中で止める練習はしないでください。膀胱に負担がかかります。尿漏れなどの症状があれば、泌尿器科や理学療法士に相談すると、個別に確かめてもらえます。</p>
+
+<h2>本編（約10分）</h2>
+<ol class="steps">
+  <li class="step">
+    <div class="time"><strong>1</strong>0:00〜1:00</div>
+    <div>
+      <h3>座って呼吸と骨盤底の引き上げ</h3>
+      <p class="for">骨盤底筋・体幹の準備</p>
+      <canvas class="fig" data-ex="breath" role="img" aria-label="椅子に座って呼吸し、吐くときに骨盤底を引き上げる動き"></canvas>
+      <p>椅子に浅く座り、背筋を伸ばす。鼻から吸ってお腹をふくらませ、口からゆっくり吐きながら、尿を途中で止めるような感覚で骨盤底をおへそ側へ引き上げる。</p>
+      <p><span class="rep">5秒保持 → 5秒ゆるめる × 5回</span></p>
+      <p class="tip">お尻や太ももに力が入らないように。肩はすくめない。</p>
+    </div>
+  </li>
+  <li class="step">
+    <div class="time"><strong>2</strong>1:00〜2:00</div>
+    <div>
+      <h3>肩回しと肩甲骨寄せ</h3>
+      <p class="for">肩こり</p>
+      <canvas class="fig" data-ex="shoulder" role="img" aria-label="指先を肩にのせて肘で円を描く肩回し"></canvas>
+      <ul>
+        <li>指先を肩にのせ、肘で大きな円を描く。<span class="rep">後ろ回し10回・前回し5回</span></li>
+        <li>両肘を体の横で90度に曲げ、胸を開いて左右の肩甲骨を背骨へ寄せる。<span class="rep">5秒 × 5回</span></li>
+      </ul>
+      <p class="tip">後ろ回しを多めにするのは、前かがみで固まった胸の前側をほどくため。</p>
+    </div>
+  </li>
+  <li class="step">
+    <div class="time"><strong>3</strong>2:00〜3:00</div>
+    <div>
+      <h3>壁ばんざい（ウォールエンジェル）</h3>
+      <p class="for">肩こり・姿勢</p>
+      <canvas class="fig" data-ex="wall" role="img" aria-label="壁を背に腕をWの形からYの形へ上げる動き"></canvas>
+      <p>壁を背にして立ち、かかとを壁から半歩離す。後頭部・背中・お尻を壁につけ、腕を「W」の形にして壁に沿わせる。そのまま腕を「Y」の形へゆっくり上げ、また「W」へ戻す。</p>
+      <p><span class="rep">ゆっくり8回</span></p>
+      <p class="tip">腰が反って壁から浮くなら、腕を上げる範囲を小さくしてかまいません。</p>
+    </div>
+  </li>
+  <li class="step">
+    <div class="time"><strong>4</strong>3:00〜3:50</div>
+    <div>
+      <h3>馬歩で雲の手</h3>
+      <p class="for">太極拳の型 一　大腿筋・体幹・肩</p>
+      <canvas class="fig" data-ex="taiA" role="img" aria-label="足を広げて腰を落とし、片手ずつ顔の高さへ上げて左右に動かす"></canvas>
+      <p>足を肩幅の1.5倍ほどに開き、膝を軽く曲げて腰を落とす（馬歩）。片手を顔の高さへゆっくり上げ、手のひらを外へ向けて横へなでるように動かし、反対の手と入れ替える。</p>
+      <p><span class="rep">左右各5回</span></p>
+      <p class="tip">膝はつま先と同じ向きに。目線は上げた手を追う。</p>
+    </div>
+  </li>
+  <li class="step">
+    <div class="time"><strong>5</strong>3:50〜4:40</div>
+    <div>
+      <h3>両手で天を支える</h3>
+      <p class="for">太極拳の型 二　肩こり・体幹・骨盤底筋</p>
+      <canvas class="fig" data-ex="taiB" role="img" aria-label="腰を落とした姿勢から、膝を伸ばしながら両手を頭上へ上げ、また下ろす"></canvas>
+      <p>馬歩で両手をお腹の前に。吸いながら膝を伸ばし、両手を頭上へ押し上げる。吐きながら膝を曲げて腕を下ろし、骨盤底を引き上げる。</p>
+      <p><span class="rep">5回</span></p>
+      <p class="tip">腕を上げても肩はすくめない。首の後ろを長く保つ。</p>
+    </div>
+  </li>
+  <li class="step">
+    <div class="time"><strong>6</strong>4:40〜5:30</div>
+    <div>
+      <h3>胸の前から開いて前へ</h3>
+      <p class="for">太極拳の型 三　背中・もも裏・肩</p>
+      <canvas class="fig" data-ex="taiC" role="img" aria-label="胸の前に手を置いた姿勢から、腕を開きながら上体を前へ倒し、起き上がる"></canvas>
+      <p>足を肩幅より広く開く。胸の前で指先を向かい合わせ、吐きながら腕を左右に大きく開いて上体を前へ倒す。吸いながらゆっくり起き上がる。</p>
+      <p><span class="rep">5回</span></p>
+      <p class="tip">膝はゆるめたまま。血圧が高い方やふらつきやすい方は、頭が心臓より下がらない浅さで。</p>
+    </div>
+  </li>
+  <li class="step">
+    <div class="time"><strong>7</strong>5:30〜6:30</div>
+    <div>
+      <h3>弓歩で押し出す</h3>
+      <p class="for">太極拳の型 四　大腿筋・体幹・バランス</p>
+      <canvas class="fig" data-ex="taiD" role="img" aria-label="片足を前に出して前膝を曲げ、体重を前へ移しながら手のひらで押し出す"></canvas>
+      <p>片足を大きく前へ出し、前の膝を曲げて後ろ脚を伸ばす（弓歩）。吐きながら体重を前へ移し、手のひらで前へ押し出す。吸いながら後ろへ戻る。</p>
+      <p><span class="rep">左右各4回</span></p>
+      <p class="tip">前の膝がつま先より前に出ない幅で。上体はまっすぐ立てたまま。</p>
+    </div>
+  </li>
+  <li class="step">
+    <div class="time"><strong>8</strong>6:30〜7:10</div>
+    <div>
+      <h3>球を抱いて立つ</h3>
+      <p class="for">太極拳の型 五　骨盤底筋・体幹・整える</p>
+      <canvas class="fig" data-ex="taiE" role="img" aria-label="腰を落として、お腹の前で大きな球を抱えるように腕を丸めて呼吸する"></canvas>
+      <p>馬歩のまま、お腹の前に大きな球を抱えるように両腕を丸める。吐くたびに少しだけ腰を沈め、骨盤底を引き上げる。</p>
+      <p><span class="rep">呼吸5回</span></p>
+    </div>
+  </li>
+  <li class="step">
+    <div class="time"><strong>9</strong>7:10〜8:30</div>
+    <div>
+      <h3>かかと上げ下ろし</h3>
+      <p class="for">ふくらはぎ・骨盤底筋・バランス</p>
+      <canvas class="fig" data-ex="heel" role="img" aria-label="椅子の背に手を添えて、つま先立ちになり、ゆっくりかかとを下ろす"></canvas>
+      <p>椅子の背に軽く手を添えて立つ。吐きながらかかとを上げてつま先立ちになり、同時に骨盤底を引き上げて2秒止める。吸いながら3秒かけてかかとを下ろす。</p>
+      <p><span class="rep">10回</span></p>
+      <p class="tip">太極拳の型で使った脚をここで仕上げます。ふくらはぎは「第二の心臓」とも呼ばれ、脚の血流を心臓へ押し戻す働きがあります。</p>
+    </div>
+  </li>
+  <li class="step">
+    <div class="time"><strong>10</strong>8:30〜10:00</div>
+    <div>
+      <h3>首と胸のストレッチで締め</h3>
+      <p class="for">肩こり・整える</p>
+      <canvas class="fig" data-ex="neck" role="img" aria-label="頭をゆっくり左右に倒す首のストレッチ"></canvas>
+      <ul>
+        <li>右手で椅子の座面をつかみ、頭をゆっくり左へ倒す。首の右側が伸びたところで<span class="rep">20秒</span>。反対も。</li>
+        <li>両手を背中で組み、胸を開いて目線をやや上へ。<span class="rep">20秒</span></li>
+        <li>最後に1の呼吸を<span class="rep">3回</span>。</li>
+      </ul>
+      <p class="tip">ストレッチは反動をつけず、気持ちよい手前で止める。</p>
+    </div>
+  </li>
+</ol>
+
+<h2>時間がない日の3分版</h2>
+<div class="short">
+  <ol>
+    <li>座って骨盤底の引き上げ 5回（1の動作）</li>
+    <li>両手で天を支える 5回（5の動作）</li>
+    <li>肩の後ろ回し 10回と首の横倒し左右（2・10の動作）</li>
+  </ol>
+</div>
+
+<h2>気をつけること</h2>
+<ul class="caution">
+  <li><strong>痛み</strong>が出たらその動作は中止。違和感程度なら回数や範囲を減らす。</li>
+  <li><strong>息を止めない。</strong>血圧が気になる方は特に、力む瞬間こそ吐く。</li>
+  <li>骨盤底筋は<strong>締めた分だけゆるめる</strong>のも練習のうち。締めっぱなしにしない。</li>
+  <li>持病や手術歴、強いしびれなどがある場合は、始める前にかかりつけ医に相談を。</li>
+  <li>効果の目安は2〜3週間。毎日少しずつが、週末にまとめるより効きます。</li>
+</ul>
+
+<footer>椅子は肘掛けのない安定したもの、床は滑りにくい場所で。図の動きは速さではなく形の目安です。実際はもっとゆっくりで構いません。</footer>
+</div>
+<script>
+(function(){
+const L={torso:40,neck:13,head:9,ua:21,fa:19,th:26,sh:26},TAU=Math.PI*2,R=Math.PI/180,W=160,H=150,FLOOR=137;
+const ease=x=>(1-Math.cos(TAU*x))/2, lerp=(a,b,t)=>a+(b-a)*t, clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const dir=d=>[Math.sin(d*R),Math.cos(d*R)];
+function ik(h,f,fwd){let dx=f[0]-h[0],dy=f[1]-h[1],d=Math.hypot(dx,dy);const m=L.th+L.sh-0.01;
+ if(d>m){f=[h[0]+dx/d*m,h[1]+dy/d*m];dx=f[0]-h[0];dy=f[1]-h[1];d=m}
+ const hh=Math.sqrt(Math.max(0,L.th*L.th-(d/2)*(d/2)));let c=[-dy/d,dx/d];
+ if(c[0]*fwd<0||(Math.abs(c[0])<1e-6&&c[1]>0))c=[-c[0],-c[1]];
+ return {k:[h[0]+dx/2+c[0]*hh,h[1]+dy/2+c[1]*hh],f};}
+const EX={
+ breath:{period:8,still:.75,pose(ph){const r=ph<.5?2.5:2.5+3.5*Math.sin(Math.PI*(ph-.5)*2);
+  return {view:'side',hip:[64,106],torso:0,neck:0,arms:[{a:20,e:55},{a:20,e:55}],feet:[[90,135],[86,135]],chair:{x0:44,x1:78,y:108},dot:r,label:ph<.5?'吸う':'吐いて引き上げる'}}},
+ shoulder:{period:3,still:.3,pose(ph){const a=90+360*ph;
+  return {view:'side',hip:[74,84],torso:0,neck:0,arms:[{a,e:165},{a,e:165}],feet:[[76,135],[72,135]],label:'後ろ回し'}}},
+ wall:{period:4,still:.5,pose(ph){const p=ease(ph),a=100+55*p,f=175-15*p;
+  return {view:'front',hip:[80,84],torso:0,neck:0,arms:[{a:-a,e:-(f-a)},{a:a,e:f-a}],feet:[[73,135],[87,135]],wall:true,label:p<.5?'W':'Y'}}},
+ squat:{period:4,still:.5,pose(ph){const p=ease(ph);
+  return {view:'side',hip:[72-10*p,84+21*p],torso:40*p,neck:0,arms:[{a:85*p,e:0},{a:85*p,e:0}],feet:[[76,135],[73,135]],chair:{x0:30,x1:60,y:110},dot:p<.5&&ph>.5?4:0,label:ph>.5?'吐いて立つ':''}}},
+ march:{period:3.2,still:.25,pose(ph){const s=Math.sin(TAU*ph),l0=Math.max(0,s),l1=Math.max(0,-s);
+  return {view:'side',hip:[74,84],torso:0,neck:0,arms:[{a:30*l1-15*l0,e:30},{a:30*l0-15*l1,e:30}],feet:[[74+18*l0,135-30*l0],[74+18*l1,135-30*l1]]}}},
+ knee:{period:5,still:.6,pose(ph){const p=Math.min(1,ease(ph)*1.4);
+  return {view:'side',hip:[62,106],torso:0,neck:0,arms:[{a:-8,e:0},{a:-8,e:0}],feet:[[lerp(88,113,p),lerp(135,104,p)],[84,135]],chair:{x0:40,x1:74,y:108},dot:p>.95?4:0,label:p>.95?'5秒キープ':''}}},
+ neck:{period:6,still:.25,pose(ph){const n=28*clamp(Math.sin(TAU*ph)*1.4,-1,1);
+  return {view:'front',hip:[80,84],torso:0,neck:n,arms:[{a:-6,e:0},{a:6,e:0}],feet:[[73,135],[87,135]]}}},
+ heel:{period:5,still:.4,pose(ph){const p=Math.min(1,ease(ph)*1.5),l=7*p;
+  return {view:'side',hip:[74,84-l],torso:0,neck:0,arms:[{a:35,e:15},{a:35,e:15}],feet:[[76,135-l],[72,135-l]],toes:[[84,135],[80,135]],chair:{x0:100,x1:130,y:108},dot:p>.9?4:0,label:ph<.5?'吐いて上げる':'ゆっくり下ろす'}}},
+ taiA:{period:6,still:.25,pose(ph){const s=Math.sin(TAU*ph),l0=(1+s)/2,l1=1-l0,A=l=>30+100*l,F=l=>30+140*l;
+  return {view:'front',hip:[80+3*s,93],torso:0,neck:-6*s,arms:[{a:-A(l0),e:-(F(l0)-A(l0))},{a:A(l1),e:F(l1)-A(l1)}],feet:[[61,135],[99,135]],label:'ゆっくり左右へ'}}},
+ taiB:{period:6,still:.5,pose(ph){const p=ease(ph),aL=lerp(-25,-165,p),fL=lerp(80,185,p);
+  return {view:'front',hip:[80,lerp(94,86,p)],torso:0,neck:0,arms:[{a:aL,e:fL-aL},{a:-aL,e:-(fL-aL)}],feet:[[61,135],[99,135]],dot:ph>.5?2.5+3.5*Math.sin(Math.PI*(ph-.5)*2):0,label:ph<.5?'吸って天へ':'吐いて沈む'}}},
+ taiC:{period:7,still:.5,pose(ph){const p=ease(ph);
+  return {view:'side',hip:[74-6*p,84],torso:75*p,neck:0,arms:[{a:lerp(20,5,p),e:lerp(100,0,p)},{a:lerp(20,-5,p),e:lerp(100,0,p)}],feet:[[76,135],[72,135]],label:ph<.5?'吐いて開き前へ':'吸って起きる'}}},
+ taiD:{period:5,still:.5,pose(ph){const p=ease(ph),a=lerp(15,80,p),f=lerp(110,85,p);
+  return {view:'side',hip:[lerp(70,82,p),lerp(92,94,p)],torso:5*p,neck:0,arms:[{a,e:f-a},{a:10,e:100}],feet:[[98,135],[52,135]],label:ph<.5?'吐いて押し出す':'吸って戻す'}}},
+ taiE:{period:8,still:.75,pose(ph){const d=ph<.5?0:Math.sin(Math.PI*(ph-.5)*2);
+  return {view:'front',hip:[80,93+3*d],torso:0,neck:0,arms:[{a:-30,e:110},{a:30,e:-110}],feet:[[61,135],[99,135]],dot:2.5+3.5*d,label:ph<.5?'吸う':'吐いて少し沈む'}}}
+};
+function line(c,a,b){c.beginPath();c.moveTo(a[0],a[1]);c.lineTo(b[0],b[1]);c.stroke()}
+function draw(c,P,col){
+ c.lineCap='round';c.lineJoin='round';
+ if(P.wall){c.fillStyle=col.soft;c.fillRect(50,12,60,FLOOR-12)}
+ c.strokeStyle=col.line;c.lineWidth=2;line(c,[8,FLOOR],[152,FLOOR]);
+ if(P.chair){const h=P.chair;c.lineWidth=3;line(c,[h.x0,h.y],[h.x1,h.y]);line(c,[h.x0+2,h.y],[h.x0+2,FLOOR]);line(c,[h.x1-2,h.y],[h.x1-2,FLOOR]);line(c,[h.x0,h.y],[h.x0-4,h.y-34])}
+ const hip=P.hip,t=P.torso*R,top=[hip[0]+L.torso*Math.sin(t),hip[1]-L.torso*Math.cos(t)];
+ const na=(P.torso+P.neck)*R,head=[top[0]+L.neck*Math.sin(na),top[1]-L.neck*Math.cos(na)];
+ const front=P.view==='front';
+ const sh=front?[[top[0]-11,top[1]+4],[top[0]+11,top[1]+4]]:[top,top];
+ const hp=front?[[hip[0]-6,hip[1]],[hip[0]+6,hip[1]]]:[hip,hip];
+ c.strokeStyle=col.ink;c.lineWidth=4.5;
+ const arm=i=>{const A=P.arms[i],e=[sh[i][0]+L.ua*dir(A.a)[0],sh[i][1]+L.ua*dir(A.a)[1]],d=dir(A.a+A.e);line(c,sh[i],e);line(c,e,[e[0]+L.fa*d[0],e[1]+L.fa*d[1]])};
+ const leg=i=>{const s=ik(hp[i],P.feet[i],front?(i?1:-1):1);line(c,hp[i],s.k);line(c,s.k,s.f);
+  if(P.toes){line(c,s.f,P.toes[i])}else if(front){line(c,s.f,[s.f[0]+(i?5:-5),s.f[1]])}else{const dx=s.f[0]-s.k[0],dy=s.f[1]-s.k[1],d=Math.hypot(dx,dy);line(c,s.f,[s.f[0]+dy/d*7,s.f[1]-dx/d*7])}};
+ if(!front){c.globalAlpha=.35;leg(1);arm(1);c.globalAlpha=1}
+ if(front){line(c,hp[0],hp[1]);line(c,sh[0],sh[1])}
+ line(c,hip,top);line(c,top,head);
+ c.beginPath();c.arc(head[0],head[1],L.head,0,TAU);c.fillStyle=col.bg;c.fill();c.stroke();
+ if(front){leg(0);leg(1);arm(0);arm(1)}else{leg(0);arm(0)}
+ if(P.dot){c.fillStyle=col.accent;c.globalAlpha=.85;c.beginPath();c.arc(hip[0],hip[1]+6,P.dot,0,TAU);c.fill();c.globalAlpha=1}
+ if(P.label){c.fillStyle=col.accent;c.font='700 12px "Zen Kaku Gothic New",sans-serif';c.fillText(P.label,8,18)}
+}
+const figs=[...document.querySelectorAll('canvas.fig')];
+function size(cv){const w=cv.getBoundingClientRect().width||200,d=window.devicePixelRatio||1;cv.width=Math.round(w*d);cv.height=Math.round(w*H/W*d)}
+figs.forEach(size);addEventListener('resize',()=>figs.forEach(size));
+const reduce=matchMedia('(prefers-reduced-motion: reduce)');
+function frame(ms){const s=getComputedStyle(document.documentElement),g=k=>s.getPropertyValue(k).trim();
+ const col={ink:g('--ink'),line:g('--line'),accent:g('--accent'),soft:g('--accent-soft'),bg:g('--surface')};
+ figs.forEach(cv=>{const ex=EX[cv.dataset.ex];if(!ex)return;const c=cv.getContext('2d');c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,cv.width,cv.height);
+  const k=cv.width/W;c.setTransform(k,0,0,k,0,0);const ph=reduce.matches?ex.still:(ms/1000/ex.period)%1;draw(c,ex.pose(ph),col)});
+ requestAnimationFrame(frame)}
+requestAnimationFrame(frame);
+})();
+</script>
+
+<script>if("serviceWorker" in navigator){addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}</script>
+</body>
+</html>
