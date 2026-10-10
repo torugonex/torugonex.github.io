@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>ローマ 永遠の都を歩く</title>
+
+<style>
+/* my works と同じ紙と藍。中央に小さな錠前の札を一枚置くだけ */
+:root{
+  --paper:#eef0ec; --sheet:#f8f9f6; --ink:#1f2622; --ink-soft:#5a645e; --rule:#cfd5cf; --ai:#2d4a6b; --bad:#a3402e;
+  --mincho:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;
+  --gothic:"Hiragino Sans","Yu Gothic","Noto Sans JP",system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root{--paper:#161a18; --sheet:#1d2220; --ink:#e4e8e3; --ink-soft:#9aa49d; --rule:#323a36; --ai:#9cb8d8; --bad:#e48a76; color-scheme:dark}
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:var(--paper);color:var(--ink);font-family:var(--gothic);font-size:15px;line-height:1.8;
+  display:grid;place-items:center;min-height:100vh;padding:24px 16px}
+.gate{width:100%;max-width:380px;background:var(--sheet);border:1px solid var(--rule);border-radius:8px;padding:28px 24px;display:grid;gap:14px}
+.mark{color:var(--ai)}
+h1{margin:0;font-family:var(--mincho);font-weight:700;font-size:22px;line-height:1.4;text-wrap:balance}
+p{margin:0;color:var(--ink-soft);font-size:14px}
+label{font-size:14px}
+input[type=password]{width:100%;font:inherit;font-size:16px;color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:10px 12px}
+input:focus-visible,button:focus-visible{outline:2px solid var(--ai);outline-offset:2px}
+.row{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-soft)}
+.row input{width:16px;height:16px;accent-color:var(--ai)}
+button{font:inherit;font-weight:500;background:var(--ai);color:var(--sheet);border:0;border-radius:6px;padding:10px;cursor:pointer}
+button:disabled{opacity:.6;cursor:default}
+.msg{min-height:1.5em;font-size:13px;color:var(--bad)}
+.msg.ok{color:var(--ink-soft)}
+.back{font-size:13px;color:var(--ink-soft)}
+.back a{color:inherit}
+</style>
+</head>
+<body>
+<form class="gate" id="f" autocomplete="off">
+  <svg class="mark" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="10.5" width="15" height="10" rx="1.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg>
+  <h1>ローマ 永遠の都を歩く</h1>
+  <p>このページはパスワードで保護されています。</p>
+  <div style="display:grid;gap:6px">
+    <label for="pw">パスワード</label>
+    <input type="password" id="pw" name="pw" required autocomplete="current-password">
+  </div>
+  <label class="row" for="rem"><input type="checkbox" id="rem">この端末では次から入力を省く</label>
+  <button type="submit" id="go">開く</button>
+  <div class="msg" id="msg" role="status" aria-live="polite"></div>
+  <div class="back"><a href="/">my works へ戻る</a></div>
+</form>
+<script>
+(function(){
+  const CONF = {"salt":"/VJIKDOqx6yaaasf0Zvzew==","iter":310000,"files":["b/a01.json","b/a02.json","b/a03.json","b/a04.json","b/a05.json","b/a06.json","b/a07.json","b/a08.json","b/a09.json","b/a10.json","b/a11.json","b/a12.json","b/a13.json","b/a14.json","b/a15.json","b/a16.json","b/a17.json","b/a18.json","b/a19.json","b/a20.json","b/a21.json","b/a22.json","b/a23.json","b/a24.json","b/cover.json","b/hotel.json","b/s01.json","b/s02.json","b/s03.json","b/s04.json","data.json"]};
+  const KEYNAME = 'lock:' + location.pathname.replace(/index\.html$/, '');
+  const $ = id => document.getElementById(id);
+  const b64d = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+  const b64e = u => { let s = ''; u.forEach(b => s += String.fromCharCode(b)); return btoa(s); };
+  const store = { get(){ try{ return localStorage.getItem(KEYNAME); }catch(e){ return null; } },
+                  set(v){ try{ localStorage.setItem(KEYNAME, v); }catch(e){} },
+                  del(){ try{ localStorage.removeItem(KEYNAME); }catch(e){} } };
+  if(!window.crypto || !crypto.subtle){ $('msg').textContent = 'このブラウザでは開けません。最新の Chrome や Safari でお試しください。'; $('go').disabled = true; return; }
+
+  async function derive(pw){
+    const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveKey']);
+    return crypto.subtle.deriveKey({ name:'PBKDF2', salt:b64d(CONF.salt), iterations:CONF.iter, hash:'SHA-256' }, base,
+      { name:'AES-GCM', length:256 }, true, ['decrypt']);
+  }
+  async function unlock(key, remember){
+    const r = await fetch('page.enc', { cache:'no-cache' });
+    if(!r.ok) throw new Error('fetch');
+    const buf = new Uint8Array(await r.arrayBuffer());
+    let html;
+    try{ html = new TextDecoder().decode(await crypto.subtle.decrypt({ name:'AES-GCM', iv:buf.slice(0,12) }, key, buf.slice(12))); }
+    catch(e){ throw new Error('wrong'); }
+    const raw = b64e(new Uint8Array(await crypto.subtle.exportKey('raw', key)));
+    if(remember) store.set(raw);
+    // 復号した作品が読み込むデータ（.json）も、その場で復号して渡す
+    const hook = '<script>(function(){var R="' + raw + '",F=' + JSON.stringify(CONF.files) + ',D=' + JSON.stringify(location.pathname.replace(/[^/]*$/, '')) + ';'
+      + 'var of=window.__lockFetch||window.fetch.bind(window);window.__lockFetch=of;'
+      + 'var kp=crypto.subtle.importKey("raw",Uint8Array.from(atob(R),function(c){return c.charCodeAt(0)}),"AES-GCM",false,["decrypt"]);'
+      + 'window.fetch=function(input,init){try{var u=new URL(typeof input==="string"?input:input.url,location.href);'
+      + 'if(u.origin===location.origin&&u.pathname.indexOf(D)===0){var rel=u.pathname.slice(D.length);if(F.indexOf(rel)>=0){'
+      + 'return of(D+rel+".enc").then(function(r){if(!r.ok)throw new Error("load");return r.arrayBuffer()}).then(function(b){b=new Uint8Array(b);'
+      + 'return kp.then(function(k){return crypto.subtle.decrypt({name:"AES-GCM",iv:b.slice(0,12)},k,b.slice(12))})}).then(function(p){'
+      + 'return new Response(p,{status:200,headers:{"content-type":"application/json"}})})}}}catch(e){}return of(input,init)};})();<\/script>';
+    const m = html.match(/<head[^>]*>/i);
+    html = m ? html.replace(m[0], m[0] + hook) : hook + html;
+    document.open(); document.write(html); document.close();
+  }
+
+  const saved = store.get();
+  if(saved){
+    $('msg').className = 'msg ok'; $('msg').textContent = '開いています…';
+    crypto.subtle.importKey('raw', b64d(saved), 'AES-GCM', true, ['decrypt'])
+      .then(k => unlock(k, false))
+      .catch(() => { store.del(); $('msg').className = 'msg'; $('msg').textContent = ''; $('pw').focus(); });
+  } else $('pw').focus();
+
+  $('f').addEventListener('submit', async e => {
+    e.preventDefault();
+    const pw = $('pw').value; if(!pw) return;
+    $('go').disabled = true; $('msg').className = 'msg ok'; $('msg').textContent = '確かめています…';
+    try{ await unlock(await derive(pw), $('rem').checked); }
+    catch(err){
+      $('go').disabled = false; $('msg').className = 'msg';
+      $('msg').textContent = err.message === 'wrong' ? 'パスワードが違います。もう一度入力してください。' : '読み込めませんでした。通信状態を確かめて、もう一度お試しください。';
+      $('pw').select();
+    }
+  });
+})();
+</script>
+</body>
+</html>
