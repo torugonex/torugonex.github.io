@@ -1,0 +1,382 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif}img{max-width:100%}[hidden]{display:none!important}*{box-sizing:border-box}</style></head><body>
+<title>光と音のオクターブ（色反転版）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column; a scale selector up top; dark "instrument" panels (spectrum, prelude, keys) sit inside it like lit glass on paper */
+:root{
+  --bg:#f3f2f6; --fg:#1d1c24; --muted:#615f6e; --rule:#d9d7e2; --chip:#e6e4ee;
+  --panel:#101016; --panel-fg:#e9e8f0; --panel-muted:#8c8a9b; --accent:#5a4fcf;
+  --display:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
+  --body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#16151c; --fg:#e8e7ef; --muted:#9a98aa; --rule:#2e2c38; --chip:#24222d;
+  --panel:#08080c; --panel-fg:#ecebf3; --panel-muted:#8c8a9b; --accent:#9d95ff; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#16151c; --fg:#e8e7ef; --muted:#9a98aa; --rule:#2e2c38; --chip:#24222d;
+  --panel:#08080c; --panel-fg:#ecebf3; --panel-muted:#8c8a9b; --accent:#9d95ff; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.8}
+.wrap{max-width:760px;margin:0 auto;padding-inline:20px;padding-block:40px 64px;display:flex;flex-direction:column;gap:30px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(28px,6vw,40px);line-height:1.3;margin:0;text-wrap:balance}
+h2{font-family:var(--display);font-weight:700;font-size:22px;margin:0;text-wrap:balance}
+p{margin:0;max-width:40em}
+.lede{color:var(--muted)}
+section{display:flex;flex-direction:column;gap:14px}
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.seg label{display:flex;align-items:center;gap:8px;padding:8px 16px;border-radius:999px;background:var(--chip);cursor:pointer;font-size:15px;border:1px solid transparent}
+.seg input{accent-color:var(--accent);margin:0}
+.seg label:has(input:checked){border-color:var(--accent);color:var(--fg)}
+.seg label:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:2px}
+.modenote{font-size:14px;color:var(--muted);background:var(--chip);border-radius:8px;padding:12px 14px;max-width:none}
+.panel{background:var(--panel);color:var(--panel-fg);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:14px}
+canvas#spec{width:100%;height:140px;display:block;border-radius:6px;cursor:crosshair;touch-action:none}
+canvas#spec:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.axis{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;color:var(--panel-muted)}
+.readout{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.readout div{display:flex;flex-direction:column;min-width:0}
+.readout span{font-size:11px;letter-spacing:.08em;color:var(--panel-muted)}
+.readout b{font-family:var(--mono);font-weight:500;font-size:20px;font-variant-numeric:tabular-nums;white-space:nowrap}
+@media (max-width:480px){.readout{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.hint{font-size:13px;color:var(--panel-muted)}
+.stick{position:sticky;top:env(safe-area-inset-top,0px);z-index:2;background:var(--panel);margin:-18px -18px 0;padding:18px 18px 12px;border-radius:10px 10px 0 0;display:flex;flex-direction:column;gap:12px;border-bottom:1px solid #26252f}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+button{font-family:var(--body);font-size:15px;padding:8px 18px;border-radius:999px;border:1px solid var(--panel-muted);background:transparent;color:var(--panel-fg);cursor:pointer}
+button:hover{border-color:var(--panel-fg)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.primary{background:var(--panel-fg);color:var(--panel);border-color:var(--panel-fg)}
+.pmode{display:flex;align-items:center;gap:6px;margin-left:auto}
+.pmode button{padding:6px 0;width:38px;font-family:var(--mono)}
+.pmode button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.plabel{font-size:13px;color:var(--panel-muted)}
+@media (max-width:520px){.pmode{margin-left:0}}
+.bars{display:flex;flex-direction:column;gap:5px}
+.bar{display:grid;grid-template-columns:2.4em 1fr;gap:8px;align-items:center}
+.bar .no{font-family:var(--mono);font-size:12px;color:var(--panel-muted);text-align:right;padding:2px 4px;border:0;border-radius:4px;width:auto}
+.bar .no:hover{color:var(--panel-fg);background:#22212b}
+.bar.cur .no{color:var(--panel-fg)}
+.cells{display:grid;grid-template-columns:repeat(16,1fr);gap:2px}
+.cells.chord{grid-template-columns:repeat(5,1fr)}
+.cell{height:24px;border-radius:2px;transition:transform .08s,background .3s}
+.cell.on{transform:scaleY(1.45);box-shadow:0 0 12px 2px currentColor}
+.now{display:flex;gap:14px;align-items:center;min-height:52px}
+.swatch{width:52px;height:52px;border-radius:50%;flex:none;background:#000}
+.now .txt{font-family:var(--mono);font-size:14px;color:var(--panel-fg)}
+.now .txt small{display:block;color:var(--panel-muted);font-size:12px}
+.keys{display:flex;gap:2px;overflow-x:auto;padding-bottom:4px}
+.key{flex:1 1 0;min-width:6px;display:flex;flex-direction:column;gap:4px;align-items:center}
+.key i{display:block;width:100%;height:56px;border-radius:2px;transition:background .3s}
+.key.blk i{height:40px}
+.key small{font-family:var(--mono);font-size:10px;color:var(--panel-muted);height:14px;white-space:nowrap}
+.keymeta{font-family:var(--mono);font-size:12px;color:var(--panel-muted)}
+.note{font-size:14px;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){.cell,.key i{transition:none}.cell.on{transform:none}}
+</style>
+
+<div class="wrap">
+  <header style="display:flex;flex-direction:column;gap:10px">
+    <h1>光と音のオクターブ<br><small style="font-size:.55em">色反転版</small></h1>
+    <p class="lede">「光と音のオクターブ」の対応を逆さにしました。紫を低い音、赤を高い音とします。虹をなぞって音を聴き、バッハを色にしてみます。</p>
+  </header>
+
+  <section>
+    <h2>ものさしを選ぶ</h2>
+    <div class="seg" role="radiogroup" aria-label="可視光に入れるオクターブ数">
+      <label><input type="radio" name="mode" id="m2" value="2">2オクターブ</label>
+      <label><input type="radio" name="mode" id="m3" value="3" checked>3オクターブ</label>
+      <label><input type="radio" name="mode" id="m4" value="4">4オクターブ</label>
+    </div>
+    <p class="modenote" id="modenote"></p>
+  </section>
+
+  <section>
+    <h2>平均律第1巻 第1番 前奏曲</h2>
+    <p>全35小節の各音を、選んだものさしで光の波長に直しました。小節番号を押すと、その小節から再生します。再生中でも、枠の右上の数字でものさしを切り替えられます。</p>
+    <div class="panel">
+      <div class="stick">
+        <div class="controls">
+          <button id="play" class="primary">再生</button>
+          <button id="stop">停止</button>
+          <span class="pmode" role="group" aria-label="ものさし">
+            <span class="plabel">ものさし</span>
+            <button data-mode="2" aria-pressed="false">2</button>
+            <button data-mode="3" aria-pressed="true">3</button>
+            <button data-mode="4" aria-pressed="false">4</button>
+            <span class="plabel">オクターブ</span>
+          </span>
+        </div>
+        <div class="now">
+          <div class="swatch" id="sw"></div>
+          <div class="txt" id="nowtxt">―<small>再生すると、いま鳴っている音の色がここに出ます</small></div>
+        </div>
+      </div>
+      <div class="bars" id="bars"></div>
+    </div>
+    <p class="note">楽譜はバッハ自筆譜系の通常の版(全35小節)に基づきます。第33・34小節は分散和音の型が変わり、最終小節は和音です。ピアノではなく単純な合成音で、強弱はつけていません。</p>
+  </section>
+
+  <section>
+    <h2>虹をなぞる</h2>
+    <p>スペクトルを押したまま左右に動かしてください。鍵盤と同じく左が低い音で、紫(短い波長)から始まり、右の赤(長い波長)が高い音です。</p>
+    <div class="panel">
+      <canvas id="spec" tabindex="0" aria-label="可視光スペクトル。押すかキー操作で音が鳴ります"></canvas>
+      <div class="axis"><span>380nm</span><span>450</span><span>495</span><span>570</span><span>620</span><span>750nm</span></div>
+      <div class="readout">
+        <div><span>波長</span><b id="r-nm">620 nm</b></div>
+        <div><span>光の周波数</span><b id="r-thz">484 THz</b></div>
+        <div><span>音の周波数</span><b id="r-hz">440 Hz</b></div>
+        <div><span>音名</span><b id="r-note">A4</b></div>
+      </div>
+      <p class="hint">キーボードでは、スペクトルを選んで ← → で移動、スペースで鳴らします。</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>鍵盤と色</h2>
+    <p>選んだものさしで、可視光に入る音域の一つひとつの半音が何色になるかを並べました。</p>
+    <div class="panel">
+      <div class="keys" id="keys"></div>
+      <div class="keymeta" id="keymeta"></div>
+    </div>
+    <p class="note">色はスペクトル色の近似で、画面で出せる色の範囲には限界があります。音の周波数はA4 = 440Hzの平均律です。</p>
+  </section>
+</div>
+
+<script>
+const C = 299792458;
+const FLO = C/750e-9, FHI = C/380e-9;
+const VIS_OCT = Math.log2(FHI/FLO);
+const NAMES = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+const JA = {"C":"ド","C#":"ド#","D":"レ","D#":"レ#","E":"ミ","F":"ファ","F#":"ファ#","G":"ソ","G#":"ソ#","A":"ラ","A#":"ラ#","B":"シ"};
+const midiHz = m => 440*Math.pow(2,(m-69)/12);
+
+const MODES = {
+  2:{fLow:midiHz(57), oct:2, range:"A3〜A5"},
+  3:{fLow:midiHz(48), oct:3, range:"C3〜C6"},
+  4:{fLow:midiHz(36), oct:4, range:"C2〜C6"}
+};
+let mode = MODES[3], modeId = 3;
+
+function foldHz(hz){
+  const hi = mode.fLow*Math.pow(2,mode.oct)*(1+1e-9);
+  while(hz < mode.fLow*(1-1e-9)) hz*=2;
+  while(hz > hi) hz/=2;
+  return hz;
+}
+function hzToNm(hz){
+  const t = 1 - Math.log2(foldHz(hz)/mode.fLow)/mode.oct;   // reversed: low pitch -> violet
+  return C/(FLO*Math.pow(FHI/FLO,t))*1e9;
+}
+function nmToHz(nm){
+  const t = 1 - Math.log(C/(nm*1e-9)/FLO)/Math.log(FHI/FLO);
+  return mode.fLow*Math.pow(2,mode.oct*t);
+}
+function hzName(hz){
+  const r = Math.round(69+12*Math.log2(hz/440));
+  return NAMES[((r%12)+12)%12] + (Math.floor(r/12)-1);
+}
+function nmRGB(w){
+  let r=0,g=0,b=0;
+  if(w<440){r=-(w-440)/60;b=1}
+  else if(w<490){g=(w-440)/50;b=1}
+  else if(w<510){g=1;b=-(w-510)/20}
+  else if(w<580){r=(w-510)/70;g=1}
+  else if(w<645){r=1;g=-(w-645)/65}
+  else{r=1}
+  let f=1;
+  if(w<420) f=.3+.7*(w-380)/40; else if(w>700) f=.3+.7*(750-w)/50;
+  const c=v=>Math.round(255*Math.pow(Math.max(0,Math.min(1,v*f)),.8));
+  return `rgb(${c(r)},${c(g)},${c(b)})`;
+}
+
+function modeText(){
+  let s = `${mode.range}の${mode.oct}オクターブを、可視光全体に対数的に引き伸ばし、低い音を紫、高い音を赤に置きます。光の周波数とは向きが逆なので、音が高くなるほど光の周波数は下がります。`;
+  if(modeId===3) s += "前奏曲の第18小節以降はバスがC3より下がるので、その音だけ1オクターブ上の色になります。";
+  else if(modeId===4) s += "前奏曲の全音域(C2〜A5)がオクターブ移動なしで収まります。";
+  else s += "範囲外の音はオクターブを移して範囲に入れます。";
+  return s;
+}
+
+/* ---------- audio ---------- */
+let ac=null;
+function audio(){ if(!ac) ac=new (window.AudioContext||window.webkitAudioContext)(); if(ac.state==="suspended") ac.resume(); return ac; }
+
+/* ---------- spectrum ---------- */
+const cv=document.getElementById("spec"), ctx=cv.getContext("2d");
+let curNm=560, osc=null, gn=null;
+function drawSpec(){
+  const dpr=window.devicePixelRatio||1, w=cv.clientWidth, h=cv.clientHeight;
+  cv.width=w*dpr; cv.height=h*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+  for(let x=0;x<w;x++){ ctx.fillStyle=nmRGB(380+370*x/w); ctx.fillRect(x,0,1,h); }
+  ctx.font="11px 'IBM Plex Mono',monospace"; ctx.textBaseline="bottom";
+  for(let m=24;m<=108;m+=12){
+    const hz=midiHz(m); if(hz<mode.fLow*(1-1e-9)||hz>mode.fLow*Math.pow(2,mode.oct)*(1+1e-9)) continue;
+    const x=(hzToNm(hz)-380)/370*w;
+    ctx.fillStyle="rgba(0,0,0,.55)"; ctx.fillRect(x-.5,h-22,1,22);
+    ctx.fillStyle="rgba(255,255,255,.9)"; ctx.fillText("C"+(m/12-1),Math.min(x+3,w-22),h-4);
+  }
+  const x=(curNm-380)/370*w;
+  ctx.fillStyle="rgba(255,255,255,.95)"; ctx.fillRect(x-1,0,2,h);
+  ctx.fillStyle="rgba(0,0,0,.35)"; ctx.fillRect(x-3,0,1,h); ctx.fillRect(x+2,0,1,h);
+}
+function readout(){
+  const thz=C/(curNm*1e-9)/1e12, hz=nmToHz(curNm);
+  document.getElementById("r-nm").textContent=curNm.toFixed(0)+" nm";
+  document.getElementById("r-thz").textContent=thz.toFixed(0)+" THz";
+  document.getElementById("r-hz").textContent=hz.toFixed(1)+" Hz";
+  document.getElementById("r-note").textContent=hzName(hz);
+}
+function setNm(nm){ curNm=Math.max(380,Math.min(750,nm)); drawSpec(); readout(); if(osc) osc.frequency.setTargetAtTime(nmToHz(curNm),ac.currentTime,.015); }
+function startTone(){
+  const a=audio(); if(osc) return;
+  osc=a.createOscillator(); gn=a.createGain();
+  osc.type="triangle"; osc.frequency.value=nmToHz(curNm);
+  gn.gain.value=0; gn.gain.setTargetAtTime(.22,a.currentTime,.02);
+  osc.connect(gn).connect(a.destination); osc.start();
+}
+function stopTone(){ if(!osc) return; const o=osc,g=gn; osc=null; g.gain.setTargetAtTime(0,ac.currentTime,.05); o.stop(ac.currentTime+.4); }
+function posNm(e){ const r=cv.getBoundingClientRect(); return 380+370*(e.clientX-r.left)/r.width; }
+cv.addEventListener("pointerdown",e=>{cv.setPointerCapture(e.pointerId); setNm(posNm(e)); startTone();});
+cv.addEventListener("pointermove",e=>{ if(osc) setNm(posNm(e)); });
+["pointerup","pointercancel","lostpointercapture"].forEach(t=>cv.addEventListener(t,stopTone));
+cv.addEventListener("keydown",e=>{
+  if(e.key==="ArrowLeft"){setNm(curNm-5);e.preventDefault()}
+  else if(e.key==="ArrowRight"){setNm(curNm+5);e.preventDefault()}
+  else if(e.key===" "||e.key==="Enter"){ if(!osc) startTone(); e.preventDefault(); }
+});
+cv.addEventListener("keyup",e=>{ if(e.key===" "||e.key==="Enter") stopTone(); });
+cv.addEventListener("blur",stopTone);
+window.addEventListener("resize",drawSpec);
+
+/* ---------- prelude: score ---------- */
+// MIDI: C4=60. Bars 1–32: 5-note chord, figure n1 n2 n3 n4 n5 n3 n4 n5, twice per bar.
+const CHORDS=[
+  [60,64,67,72,76],[60,62,69,74,77],[59,62,67,74,77],[60,64,67,72,76], // 1–4
+  [60,64,69,76,81],[60,62,66,69,74],[59,62,67,74,79],[59,60,64,67,72], // 5–8
+  [57,60,64,67,72],[50,57,62,66,72],[55,59,62,67,71],[55,58,64,67,73], // 9–12
+  [53,57,62,69,74],[53,56,62,65,71],[52,55,60,67,72],[52,53,57,60,65], // 13–16
+  [50,53,57,60,65],[43,50,55,59,65],[48,52,55,60,64],[48,55,58,60,64], // 17–20
+  [41,53,57,60,64],[42,48,57,60,63],[44,53,59,60,62],[43,53,55,59,62], // 21–24
+  [43,52,55,60,64],[43,50,55,60,65],[43,50,55,59,65],[43,51,57,60,66], // 25–28
+  [43,52,55,60,67],[43,50,55,60,65],[43,50,55,59,65],[36,48,55,58,64]  // 29–32
+];
+const FIG=[0,1,2,3,4,2,3,4];
+const BARS=[];
+CHORDS.forEach(ch=>{
+  const notes=[...FIG,...FIG].map(i=>ch[i]);
+  const holds=notes.map((_,p)=> p===0||p===8 ? 8 : p===1||p===9 ? 7 : 1.6);
+  BARS.push({type:"run",notes,holds});
+});
+// bar 33: C pedal, C3 held, descending figure over F major / D minor
+BARS.push({type:"run",notes:[36,48,53,57,60,65,60,57,60,57,53,57,53,50,53,50],
+           holds:[16,15,1.6,1.6,1.6,1.6,1.6,1.6,1.6,1.6,1.6,1.6,1.6,1.6,1.6,1.6]});
+// bar 34: C pedal, B2 held, dominant seventh figure
+BARS.push({type:"run",notes:[36,47,55,59,62,65,62,59,62,59,55,59,50,53,52,50],
+           holds:[16,15,1.6,1.6,1.6,1.6,1.6,1.6,1.6,1.6,1.6,1.6,1.6,1.6,1.6,1.6]});
+// bar 35: final C major chord
+BARS.push({type:"chord",notes:[36,48,64,67,72],holds:[22,22,22,22,22]});
+
+/* ---------- prelude: layout ---------- */
+const barsEl=document.getElementById("bars");
+const events=[], cellEls=[], rowEls=[];
+BARS.forEach((b,bi)=>{
+  const row=document.createElement("div"); row.className="bar";
+  const no=document.createElement("button"); no.className="no"; no.textContent=bi+1;
+  no.setAttribute("aria-label",`第${bi+1}小節から再生`);
+  no.addEventListener("click",()=>playPrelude(bi));
+  const cs=document.createElement("div"); cs.className="cells"+(b.type==="chord"?" chord":"");
+  b.notes.forEach((m,p)=>{
+    const d=document.createElement("div"); d.className="cell"; cs.appendChild(d);
+    const cellIdx=cellEls.push(d)-1;
+    events.push({m,hz:midiHz(m),bar:bi,step:bi*16+(b.type==="chord"?0:p),hold:b.holds[p],cell:cellIdx,chord:b.type==="chord"});
+  });
+  row.append(no,cs); barsEl.appendChild(row); rowEls.push(row);
+});
+function colorPrelude(){
+  events.forEach(ev=>{
+    const nm=hzToNm(ev.hz), col=nmRGB(nm), d=cellEls[ev.cell];
+    d.style.background=col; d.style.color=col; d.title=`${hzName(ev.hz)}  ${nm.toFixed(0)}nm`;
+  });
+}
+
+/* ---------- prelude: playback ---------- */
+let timers=[], voices=[], lit=[], curRow=-1;
+const STEP=.2;
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+function clearLit(){ lit.forEach(i=>cellEls[i].classList.remove("on")); lit=[]; }
+function stopPrelude(){
+  timers.forEach(clearTimeout); timers=[];
+  if(ac) voices.forEach(v=>{try{v.g.gain.cancelScheduledValues(0);v.g.gain.setTargetAtTime(0,ac.currentTime,.03);v.o.stop(ac.currentTime+.2)}catch(e){}});
+  voices=[]; clearLit();
+  if(curRow>=0) rowEls[curRow].classList.remove("cur"); curRow=-1;
+}
+function showNow(evs){
+  const ev=evs[evs.length-1], nm=hzToNm(ev.hz), col=nmRGB(nm), sw=document.getElementById("sw");
+  sw.style.background=col; sw.style.boxShadow=`0 0 28px 6px ${col}`;
+  const label = evs.length>1 ? "終止和音 " + evs.map(e=>hzName(e.hz)).join(" ") : `${hzName(ev.hz)}　${JA[NAMES[ev.m%12]]}`;
+  document.getElementById("nowtxt").innerHTML=`${label}<small>第${ev.bar+1}小節 · ${ev.hz.toFixed(1)}Hz → ${nm.toFixed(0)}nm</small>`;
+}
+function playPrelude(fromBar=0){
+  stopPrelude(); const a=audio(), t0=a.currentTime+.12, s0=fromBar*16;
+  const groups=new Map();
+  events.filter(ev=>ev.bar>=fromBar).forEach(ev=>{
+    const t=t0+(ev.step-s0)*STEP, hold=ev.hold*STEP;
+    const o=a.createOscillator(), g=a.createGain();
+    o.type="triangle"; o.frequency.value=ev.hz;
+    const peak = ev.chord ? .1 : .14;
+    g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(peak,t+.01);
+    g.gain.exponentialRampToValueAtTime(peak*.3,t+hold*.6); g.gain.exponentialRampToValueAtTime(.0005,t+hold);
+    o.connect(g).connect(a.destination); o.start(t); o.stop(t+hold+.05);
+    voices.push({o,g});
+    if(!groups.has(ev.step)) groups.set(ev.step,[]); groups.get(ev.step).push(ev);
+  });
+  groups.forEach((evs,step)=>{
+    timers.push(setTimeout(()=>{
+      clearLit(); evs.forEach(ev=>{cellEls[ev.cell].classList.add("on"); lit.push(ev.cell);});
+      const bar=evs[0].bar;
+      if(bar!==curRow){
+        if(curRow>=0) rowEls[curRow].classList.remove("cur");
+        curRow=bar; rowEls[bar].classList.add("cur");
+        rowEls[bar].scrollIntoView({block:"nearest",behavior:reduceMotion?"auto":"smooth"});
+      }
+      showNow(evs);
+    },(t0+(step-s0)*STEP-a.currentTime)*1000));
+  });
+  const end=(BARS.length*16-s0)*STEP+3;
+  timers.push(setTimeout(()=>{clearLit(); if(curRow>=0) rowEls[curRow].classList.remove("cur"); curRow=-1;},(t0-a.currentTime+end)*1000));
+}
+document.getElementById("play").addEventListener("click",()=>playPrelude(0));
+document.getElementById("stop").addEventListener("click",stopPrelude);
+
+/* ---------- keys ---------- */
+function drawKeys(){
+  const el=document.getElementById("keys"); el.innerHTML="";
+  const lo=Math.ceil(69+12*Math.log2(mode.fLow/440)-1e-6);
+  const hi=Math.floor(69+12*Math.log2(mode.fLow*Math.pow(2,mode.oct)/440)+1e-6);
+  const few = hi-lo < 14;
+  for(let m=lo;m<=hi;m++){
+    const hz=midiHz(m), nm=hzToNm(hz), nmn=NAMES[m%12];
+    const k=document.createElement("div"); k.className="key"+(nmn.includes("#")?" blk":"");
+    k.title=`${hzName(hz)} ${JA[nmn]}  ${hz.toFixed(1)}Hz → ${nm.toFixed(0)}nm`;
+    const i=document.createElement("i"); i.style.background=nmRGB(nm);
+    const s=document.createElement("small"); s.textContent = few ? (nmn.includes("#")?"":JA[nmn]) : (nmn==="C"?hzName(hz):"");
+    k.append(i,s); el.appendChild(k);
+  }
+  document.getElementById("keymeta").textContent =
+    `${hzName(midiHz(lo))}〜${hzName(midiHz(hi))}　${hi-lo+1}音　1半音あたり平均約${(370/(mode.oct*12)).toFixed(0)}nm`;
+}
+
+/* ---------- mode switching ---------- */
+function applyMode(id){
+  modeId=id; mode=MODES[id];
+  document.getElementById("modenote").textContent=modeText();
+  document.getElementById("m"+id).checked=true;
+  document.querySelectorAll(".pmode button").forEach(b=>b.setAttribute("aria-pressed", String(+b.dataset.mode===id)));
+  drawSpec(); readout(); colorPrelude(); drawKeys();
+}
+document.querySelectorAll('input[name="mode"]').forEach(r=>r.addEventListener("change",e=>applyMode(+e.target.value)));
+document.querySelectorAll(".pmode button").forEach(b=>b.addEventListener("click",()=>applyMode(+b.dataset.mode)));
+applyMode(3);
+</script>
+</body></html>
