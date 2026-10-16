@@ -1,0 +1,881 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style></head><body>
+<title>手の跡（仮題）</title>
+<style>
+  /* 背景は「光の呼吸」。手で引いた線は光ったあと淡い跡として残り、描いた順に再生できる。
+     筆跡は作品として保存でき、作品集から誰でも見られる */
+  :root {
+    --ink: rgba(255,255,255,0.88);
+    --ink-dim: rgba(255,255,255,0.62);
+    --chip: rgba(0,0,0,0.2);
+    --sheet: rgba(18,16,22,0.72);
+    --line: rgba(255,255,255,0.14);
+    --chip-on: rgba(255,255,255,0.88);
+    --ink-on: rgba(20,20,20,0.9);
+    --font-ui: "Zen Kaku Gothic New", "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
+    --font-title: "Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", serif;
+    --font-num: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+    color-scheme: dark;
+  }
+  html, body { height: 100%; }
+  body {
+    background: oklch(0.72 0.11 30);
+    color: var(--ink);
+    font-family: var(--font-ui);
+    overflow: hidden;
+    touch-action: none;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none; -webkit-user-select: none;
+  }
+  canvas { position: fixed; inset: 0; width: 100%; height: 100%; }
+  #trace { pointer-events: none; }
+  #light { cursor: crosshair; touch-action: none; }
+  body.viewing #light { cursor: default; }
+  .invite {
+    position: fixed; inset: 0;
+    display: grid; place-items: center;
+    pointer-events: none;
+    font-size: clamp(15px, 2.2vw, 20px);
+    letter-spacing: .18em;
+    color: var(--ink-dim);
+    transition: opacity 1.6s ease;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    text-align: center;
+  }
+  .invite.gone { opacity: 0; }
+
+  /* 下の操作パネル */
+  .panel {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 16px calc(16px + env(safe-area-inset-bottom, 0px));
+    display: flex; flex-wrap: wrap; gap: 8px 12px;
+    align-items: center;
+    pointer-events: none;
+    transition: opacity .8s ease;
+  }
+  .panel.off, .caption.off { opacity: 0; }
+  .panel.off .ctrl, .caption.off .ctrl { pointer-events: none; }
+  .chip {
+    background: var(--chip);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 13px;
+    letter-spacing: .04em;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+  .num { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+  .ctrl { pointer-events: auto; }
+  .slider { display: flex; align-items: center; gap: 10px; flex: 1 1 200px; max-width: 300px; }
+  .slider label { white-space: nowrap; min-width: 3em; }
+  .slider input { flex: 1; min-width: 0; accent-color: #fff; }
+  .slider output { min-width: 5.5em; text-align: right; }
+  .btns { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
+  .btn {
+    font: inherit; font-size: 13px; letter-spacing: .04em;
+    color: var(--ink); background: var(--chip);
+    border: 0; border-radius: 999px; padding: 6px 14px; cursor: pointer;
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    white-space: nowrap;
+  }
+  .btn.strong, .btn[aria-pressed="true"], .btn.warn { background: var(--chip-on); color: var(--ink-on); }
+  .btn:disabled { opacity: .45; cursor: default; }
+  input:focus-visible, .btn:focus-visible, .work:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+  /* 作品を見ているときの題箋 */
+  .caption {
+    position: fixed; left: 0; right: 0;
+    top: 0;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: calc(16px + env(safe-area-inset-top, 0px)) 0;
+    display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: space-between;
+    pointer-events: none;
+    transition: opacity .8s ease;
+  }
+  .caption .label { display: flex; flex-direction: column; gap: 2px; min-width: 0; text-shadow: 0 1px 8px rgba(0,0,0,.25); }
+  .caption .title { font-family: var(--font-title); font-size: clamp(20px, 3vw, 28px); letter-spacing: .08em; overflow-wrap: anywhere; }
+  .caption .meta { font-size: 13px; color: var(--ink-dim); letter-spacing: .06em; }
+
+  /* 重ねて開く面（作品集・保存） */
+  .sheet-wrap {
+    position: fixed; inset: 0;
+    display: grid; place-items: center;
+    background: rgba(0,0,0,0.18);
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: calc(16px + env(safe-area-inset-top, 0px)) calc(16px + env(safe-area-inset-bottom, 0px));
+    touch-action: auto;
+    user-select: text; -webkit-user-select: text;
+  }
+  .sheet {
+    width: min(560px, 100%);
+    max-height: min(80vh, 640px);
+    display: flex; flex-direction: column; gap: 14px;
+    background: var(--sheet);
+    border-radius: 20px;
+    padding: 20px;
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 20px 60px rgba(0,0,0,.25);
+  }
+  .sheet h2 { margin: 0; font-family: var(--font-title); font-weight: 500; font-size: 22px; letter-spacing: .12em; }
+  .sheet p { margin: 0; font-size: 13px; line-height: 1.8; color: var(--ink-dim); }
+  .sheet .row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+  .sheet input[type="text"] {
+    font: inherit; font-size: 16px; color: var(--ink);
+    background: rgba(255,255,255,0.08); border: 1px solid var(--line); border-radius: 10px;
+    padding: 10px 12px; width: 100%; box-sizing: border-box;
+  }
+  .list { overflow-y: auto; display: flex; flex-direction: column; gap: 2px; margin-inline: -8px; touch-action: pan-y; }
+  .work {
+    display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center;
+    text-align: left; font: inherit; color: var(--ink);
+    background: transparent; border: 0; border-radius: 12px;
+    padding: 10px 12px; cursor: pointer;
+  }
+  .work:hover { background: rgba(255,255,255,0.07); }
+  .work .wt { font-family: var(--font-title); font-size: 17px; letter-spacing: .06em; min-width: 0; overflow-wrap: anywhere; }
+  .work .wm { grid-column: 1; font-size: 12px; color: var(--ink-dim); letter-spacing: .04em; }
+  .work .wn { grid-row: 1 / span 2; grid-column: 2; font-size: 12px; color: var(--ink-dim); }
+  .empty { padding: 18px 12px; font-size: 13px; color: var(--ink-dim); line-height: 1.8; }
+  .linkbox { display: flex; gap: 8px; }
+  .linkbox input { font-family: var(--font-num) !important; font-size: 12px !important; }
+
+  .help { overflow-y: auto; margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 10px 16px; font-size: 13px; line-height: 1.7; touch-action: pan-y; }
+  .help dt { font-weight: 500; white-space: nowrap; }
+  .help dd { margin: 0; color: var(--ink-dim); min-width: 0; }
+  .help .sec { grid-column: 1 / -1; margin-top: 6px; font-family: var(--font-title); font-size: 15px; letter-spacing: .1em; color: var(--ink); }
+  @media (max-width: 480px) { .help { grid-template-columns: 1fr; gap: 2px; } .help dd { margin-bottom: 8px; } }
+
+  .toast {
+    position: fixed; left: 50%; transform: translateX(-50%);
+    top: calc(20px + env(safe-area-inset-top, 0px));
+    background: var(--sheet); color: var(--ink);
+    padding: 8px 16px; border-radius: 999px; font-size: 13px; letter-spacing: .04em;
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    pointer-events: none; transition: opacity .5s ease; max-width: calc(100% - 32px);
+  }
+  .toast.gone { opacity: 0; }
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono&family=Shippori+Mincho:wght@500&family=Zen+Kaku+Gothic+New:wght@400&display=swap">
+
+<canvas id="trace"></canvas>
+<canvas id="light"></canvas>
+<div class="invite" id="invite">指やマウスで、画面に線を引いてください</div>
+
+<div class="caption off" id="caption" hidden>
+  <div class="label">
+    <span class="title" id="capTitle"></span>
+    <span class="meta" id="capMeta"></span>
+  </div>
+  <div class="btns">
+    <button type="button" class="btn ctrl" id="capReplay">もう一度再生</button>
+    <button type="button" class="btn ctrl" id="capLink">共有リンク</button>
+    <button type="button" class="btn ctrl strong" id="capBack">自分の画面に戻る</button>
+  </div>
+</div>
+
+<div class="panel" id="panel">
+  <div class="chip slider ctrl">
+    <label for="speed">速さ</label>
+    <input type="range" id="speed" min="0" max="100" step="1" value="40">
+    <output class="num" id="speedOut" for="speed">一周 2分</output>
+  </div>
+  <div class="chip slider ctrl">
+    <label for="spread">色の幅</label>
+    <input type="range" id="spread" min="0" max="360" step="5" value="120">
+    <output class="num" id="spreadOut" for="spread">120°</output>
+  </div>
+  <div class="chip slider ctrl">
+    <label for="breath">呼吸</label>
+    <input type="range" id="breath" min="0" max="100" step="1" value="60">
+    <output class="num" id="breathOut" for="breath">深い</output>
+  </div>
+  <div class="chip slider ctrl">
+    <label for="trail">跡の濃さ</label>
+    <input type="range" id="trail" min="0" max="100" step="1" value="50">
+    <output class="num" id="trailOut" for="trail">ほどよく</output>
+  </div>
+  <button type="button" class="btn ctrl" id="openHelp">使い方</button>
+  <div class="btns" id="drawBtns">
+    <button type="button" class="btn ctrl" id="replay">描いた順に再生</button>
+    <button type="button" class="btn ctrl" id="undo">一つ戻す</button>
+    <button type="button" class="btn ctrl" id="clear">すべて消す</button>
+    <button type="button" class="btn ctrl" id="pause" aria-pressed="false">一時停止</button>
+    <button type="button" class="btn ctrl strong" id="saveWork" hidden>作品として保存</button>
+    <button type="button" class="btn ctrl" id="openGallery" hidden>作品集</button>
+  </div>
+</div>
+
+<div class="sheet-wrap" id="saveSheet" hidden>
+  <form class="sheet" id="saveForm" autocomplete="off">
+    <h2>作品として保存</h2>
+    <p>いま画面にある線を、描いた順と速さのまま保存します。色の速さ・幅・呼吸・跡の濃さも一緒に残ります。保存した作品は、このページを開ける人なら誰でも作品集から見られます。</p>
+    <input type="text" id="workTitle" maxlength="40" placeholder="題（なくてもかまいません）" aria-label="題">
+    <div class="row">
+      <button type="button" class="btn ctrl" id="saveCancel">やめる</button>
+      <button type="submit" class="btn ctrl strong" id="saveGo">保存する</button>
+    </div>
+  </form>
+</div>
+
+<div class="sheet-wrap" id="gallerySheet" hidden>
+  <div class="sheet">
+    <h2>作品集</h2>
+    <div class="list" id="workList"><div class="empty">読み込んでいます…</div></div>
+    <div class="row">
+      <button type="button" class="btn ctrl" id="galleryClose">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<div class="sheet-wrap" id="linkSheet" hidden>
+  <div class="sheet">
+    <h2>共有リンク</h2>
+    <p>このリンクを開くと、この作品が最初から再生されます。見られるのは、このページを共有された人だけです。</p>
+    <div class="linkbox">
+      <input type="text" id="linkText" readonly aria-label="共有リンク">
+      <button type="button" class="btn ctrl strong" id="linkCopy">コピー</button>
+    </div>
+    <div class="row">
+      <button type="button" class="btn ctrl" id="linkClose">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<div class="sheet-wrap" id="helpSheet" hidden>
+  <div class="sheet">
+    <h2>使い方</h2>
+    <dl class="help">
+      <div class="sec">描く</div>
+      <dt>線を引く</dt><dd>指やマウスで画面をなぞります。ゆっくり引くと太く、速く払うと細くなります。</dd>
+      <dt>跡</dt><dd>引いた線は一瞬強く光り、数秒で淡い「跡」になって残ります。</dd>
+      <dt>描いた順に再生</dt><dd>白紙に戻り、すべての線を描いた順番・速さのまま描き直します。</dd>
+      <dt>一つ戻す</dt><dd>最後に引いた線を一本消します。</dd>
+      <dt>すべて消す</dt><dd>画面の線を全部消します。二度押したときだけ消えます。</dd>
+      <dt>一時停止</dt><dd>背景の流れと線の薄れが止まります。</dd>
+      <dt>下書き</dt><dd>描いている途中の線は自動でこの端末に残り、次に開くと再生されます。ほかの人には見えません。</dd>
+      <div class="sec">整える</div>
+      <dt>速さ</dt><dd>背景の色が移り変わる速さです。</dd>
+      <dt>色の幅</dt><dd>画面の端から端までに、どれだけ多くの色を並べるかです。0で一色、360で虹。</dd>
+      <dt>呼吸</dt><dd>中心の光が膨らみ、縁の陰りが引いていく動きの深さです。</dd>
+      <dt>跡の濃さ</dt><dd>光ったあとに残る跡の濃さです。「残さない」にすると線は消えていきます。</dd>
+      <div class="sec">残す・見せる</div>
+      <dt id="hSaveT">作品として保存</dt><dd id="hSaveD">今の線を、描いた順・速さと上の四つの設定ごと、題を付けて保存します。</dd>
+      <dt>作品集</dt><dd id="hGallery">保存された作品の一覧です。選ぶとその作品が再生されます。このページを共有された人なら誰でも見られます。</dd>
+      <dt>共有リンク</dt><dd>作品を見ているときに出ます。その作品がいきなり再生されるリンクです。</dd>
+      <dt>自分の画面に戻る</dt><dd>作品を見終えて、自分の下書きに戻ります。</dd>
+      <div class="sec">操作の出し方</div>
+      <dt>操作パネル</dt><dd>何もしないと数秒で消えます。マウスを動かすか、画面に軽く触れると戻ります。</dd>
+    </dl>
+    <div class="row">
+      <button type="button" class="btn ctrl" id="helpClose">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast gone" id="toast"></div>
+
+<script>
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const $ = id => document.getElementById(id);
+  const STORE_KEY = 'te-no-ato/strokes/v1';
+  const ARTIFACT_URL = 'https://claude.ai/artifact/GeinBv2d4xnGTV9ioF8EmU';
+  const MAX_DOC = 240000;          // 一作品の保存上限（文字数の目安）
+
+  // ================= 背景：光の呼吸 =================
+  const L0 = 0.72, C = 0.11, STOPS = 17;
+  const MIN_DPS = 0.3, MAX_DPS = 60;
+  const ANGLE_DPS = 1.5;
+  const IN = 4, OUT = 5, CYCLE = 10;
+  function breathCurve(time) {
+    const p = time % CYCLE;
+    if (p < IN) return (1 - Math.cos(Math.PI * p / IN)) / 2;
+    if (p < IN + OUT) return (1 + Math.cos(Math.PI * Math.pow((p - IN) / OUT, 0.8))) / 2;
+    return 0;
+  }
+
+  let degPerSec = reduce ? 1 : 3;
+  let spread = 120, breath = 0.6;
+  let hue = 30, angle = 120;
+  let t = 0;
+  let running = true, last = performance.now(), idle = 0;
+  let W = innerWidth, H = innerHeight, dpr = 1;
+
+  const body = document.body;
+  function paintBackground() {
+    const s = [];
+    for (let i = 0; i < STOPS; i++) {
+      const h = (hue + spread * i / (STOPS - 1)) % 360;
+      s.push(`oklch(${L0} ${C} ${h.toFixed(1)}) ${(100 * i / (STOPS - 1)).toFixed(1)}%`);
+    }
+    const base = `linear-gradient(${angle.toFixed(1)}deg, ${s.join(', ')})`;
+    const b = breathCurve(t), d = breath;
+    const m = Math.min(W, H), half = Math.hypot(W, H) / 2;
+    const gR = m * (0.28 + 0.50 * d * b), gA = d * (0.06 + 0.16 * b);
+    const glow = `radial-gradient(circle ${gR.toFixed(1)}px at 50% 50%, rgba(255,252,246,${gA.toFixed(3)}) 0%, rgba(255,252,246,${(gA * 0.55).toFixed(3)}) 45%, rgba(255,252,246,0) 100%)`;
+    const vIn = half * (0.30 + 0.45 * b), vA = d * (0.42 - 0.22 * b);
+    const vig = `radial-gradient(circle ${(half * 1.02).toFixed(1)}px at 50% 50%, rgba(0,0,0,0) ${vIn.toFixed(1)}px, rgba(0,0,0,${(vA * 0.45).toFixed(3)}) ${((vIn + half) / 2).toFixed(1)}px, rgba(0,0,0,${vA.toFixed(3)}) 100%)`;
+    body.style.background = `${vig}, ${glow}, ${base}`;
+  }
+
+  // ================= 線のデータ =================
+  // 一本の線: { pts: [{nx, ny, rt, w}], gap, t0, active, baked }
+  let strokes = [];
+  let mode = 'draw';               // 'draw' 自分の画面 / 'view' 保存された作品を見ている
+  let current = null, lastEndReal = null;
+  const TAU = 1.2;
+  let trail = 0.3;
+
+  const cvT = $('trace'), cxT = cvT.getContext('2d');
+  const cvL = $('light'), cxL = cvL.getContext('2d');
+
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = innerWidth; H = innerHeight;
+    for (const [cv, cx] of [[cvT, cxT], [cvL, cxL]]) {
+      cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+      cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    paintBackground();
+    rebake();
+  }
+
+  function widthFor(speed, pressure) {
+    const w = 1.2 + 6.0 / (1 + speed / 380);
+    const p = pressure > 0 && pressure !== 0.5 ? 0.4 + pressure * 1.2 : 1;
+    return w * p;
+  }
+
+  function addPoint(e) {
+    const pts = current.pts;
+    const x = e.clientX, y = e.clientY;
+    const real = e.timeStamp / 1000;
+    const prev = pts[pts.length - 1];
+    if (prev) {
+      const dist = Math.hypot(x - prev.nx * W, y - prev.ny * H);
+      if (dist < 1.2) return;
+      const dt = Math.max(0.004, real - current.lastReal);
+      const w = prev.w * 0.7 + widthFor(dist / dt, e.pressure) * 0.3;
+      pts.push({ nx: x / W, ny: y / H, rt: t - current.t0, w });
+    } else {
+      pts.push({ nx: x / W, ny: y / H, rt: 0, w: widthFor(0, e.pressure) * 0.6 });
+    }
+    current.lastReal = real;
+  }
+
+  // ================= 描く =================
+  function strokePath(cx, sk, alphaOf, freshOf) {
+    const p = sk.pts;
+    if (p.length === 1) {
+      const a = alphaOf(0); if (a == null) return false;
+      cx.fillStyle = `rgba(255,251,242,${(0.8 * a).toFixed(3)})`;
+      cx.beginPath(); cx.arc(p[0].nx * W, p[0].ny * H, p[0].w * 0.6, 0, Math.PI * 2); cx.fill();
+      return true;
+    }
+    let shown = 0;
+    for (let i = 1; i < p.length; i++) {
+      const a = alphaOf(i);
+      if (a == null) break;
+      shown = i;
+      if (a < 0.004) continue;
+      const a0 = p[i - 1], a1 = p[i];
+      const x0 = a0.nx * W, y0 = a0.ny * H, x1 = a1.nx * W, y1 = a1.ny * H;
+      const mx0 = i === 1 ? x0 : (p[i - 2].nx * W + x0) / 2;
+      const my0 = i === 1 ? y0 : (p[i - 2].ny * H + y0) / 2;
+      const isEnd = i === p.length - 1;
+      const mx1 = isEnd ? x1 : (x0 + x1) / 2, my1 = isEnd ? y1 : (y0 + y1) / 2;
+      const w = (a0.w + a1.w) / 2;
+      const fresh = freshOf ? freshOf(i) : 0;
+      cx.beginPath(); cx.moveTo(mx0, my0); cx.quadraticCurveTo(x0, y0, mx1, my1);
+      cx.lineWidth = w * 3.2;
+      cx.strokeStyle = `rgba(255,246,230,${(0.10 * a).toFixed(3)})`;
+      cx.stroke();
+      cx.lineWidth = w;
+      cx.strokeStyle = `rgba(255,252,245,${Math.min(1, 0.55 * a + 0.4 * fresh).toFixed(3)})`;
+      cx.stroke();
+    }
+    return shown;
+  }
+
+  const appearAt = (sk, i) => sk.t0 + sk.pts[i].rt;
+  const settled = sk => !sk.active && t - appearAt(sk, sk.pts.length - 1) > TAU * 6;
+
+  function bake(sk) {
+    cxT.globalCompositeOperation = 'lighter';
+    cxT.lineCap = 'round'; cxT.lineJoin = 'round';
+    strokePath(cxT, sk, () => trail, null);
+    cxT.globalCompositeOperation = 'source-over';
+    sk.baked = true;
+  }
+  function rebake() {
+    cxT.clearRect(0, 0, W, H);
+    for (const sk of strokes) if (sk.baked) bake(sk);
+  }
+
+  function drawLight() {
+    cxL.clearRect(0, 0, W, H);
+    cxL.globalCompositeOperation = 'lighter';
+    cxL.lineCap = 'round'; cxL.lineJoin = 'round';
+    for (const sk of strokes) {
+      if (sk.baked) continue;
+      if (settled(sk)) { bake(sk); continue; }
+      const shown = strokePath(cxL, sk,
+        i => {
+          const at = appearAt(sk, i);
+          if (at > t) return null;
+          return trail + (1 - trail) * Math.exp(-(t - at) / TAU);
+        },
+        i => Math.max(0, 1 - (t - appearAt(sk, i)) / 0.35));
+      const n = sk.pts.length;
+      const drawing = sk.active || (shown !== false && appearAt(sk, n - 1) > t && appearAt(sk, 0) <= t);
+      if (drawing && n) {
+        const k = sk.active ? n - 1 : Math.max(0, shown);
+        const h = sk.pts[k], hx = h.nx * W, hy = h.ny * H;
+        const g = cxL.createRadialGradient(hx, hy, 0, hx, hy, h.w * 5);
+        g.addColorStop(0, 'rgba(255,255,255,0.9)');
+        g.addColorStop(1, 'rgba(255,255,255,0)');
+        cxL.fillStyle = g;
+        cxL.beginPath(); cxL.arc(hx, hy, h.w * 5, 0, Math.PI * 2); cxL.fill();
+      }
+    }
+    cxL.globalCompositeOperation = 'source-over';
+  }
+
+  // 描いた順に、手の時間で再生する。長すぎる「間」だけ縮める
+  function replay() {
+    let T = t + 0.8;
+    for (const sk of strokes) {
+      if (sk.active) continue;
+      T += Math.min(sk.gap, 1.5);
+      sk.t0 = T; sk.baked = false;
+      T += sk.pts[sk.pts.length - 1].rt;
+    }
+    rebake();
+  }
+
+  // ================= 自分の下書き（この端末のこのブラウザの中） =================
+  function saveDraft() {
+    if (mode !== 'draw') return;
+    try {
+      const data = strokes.filter(s => !s.active && s.pts.length).map(s => ({
+        g: +s.gap.toFixed(2),
+        p: s.pts.map(q => [+q.nx.toFixed(4), +q.ny.toFixed(4), +q.rt.toFixed(3), +q.w.toFixed(2)])
+      }));
+      localStorage.setItem(STORE_KEY, JSON.stringify(data));
+    } catch (e) { /* 保存できない環境では、この場限りで動く */ }
+  }
+  function loadDraft() {
+    try {
+      const raw = localStorage.getItem(STORE_KEY);
+      if (!raw) return [];
+      return JSON.parse(raw).map(s => ({
+        gap: s.g, active: false, baked: false, t0: 0,
+        pts: s.p.map(([nx, ny, rt, w]) => ({ nx, ny, rt, w }))
+      }));
+    } catch (e) { return []; }
+  }
+
+  // ================= 作品の保存形式 =================
+  // 点を整数に詰める：位置 0〜10000、時刻はミリ秒、太さは 10 倍
+  function encodeStrokes(list, step) {
+    return list.map(s => {
+      const flat = [];
+      s.pts.forEach((q, i) => {
+        if (step > 1 && i % step && i !== s.pts.length - 1) return;
+        flat.push(Math.round(q.nx * 10000), Math.round(q.ny * 10000), Math.round(q.rt * 1000), Math.round(q.w * 10));
+      });
+      return { g: Math.round(s.gap * 100) / 100, p: flat };
+    });
+  }
+  function decodeStrokes(arr) {
+    return (arr || []).map(s => {
+      const pts = [];
+      for (let i = 0; i + 3 < s.p.length; i += 4) {
+        pts.push({ nx: s.p[i] / 10000, ny: s.p[i + 1] / 10000, rt: s.p[i + 2] / 1000, w: s.p[i + 3] / 10 });
+      }
+      return { gap: +s.g || 0, active: false, baked: false, t0: 0, pts };
+    }).filter(s => s.pts.length);
+  }
+
+  // ================= 入力 =================
+  cvL.addEventListener('pointerdown', e => {
+    if (mode !== 'draw') { idle = 0; return; }
+    cvL.setPointerCapture(e.pointerId);
+    const real = e.timeStamp / 1000;
+    current = { pts: [], active: true, baked: false, id: e.pointerId, t0: t, lastReal: real,
+                gap: lastEndReal == null ? 0 : Math.max(0, real - lastEndReal) };
+    strokes.push(current);
+    addPoint(e);
+    $('invite').classList.add('gone');
+    idle = 99;
+  });
+  cvL.addEventListener('pointermove', e => {
+    if (!current || e.pointerId !== current.id) return;
+    const list = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
+    for (const ev of (list.length ? list : [e])) addPoint(ev);
+  });
+  const end = e => {
+    if (!current || e.pointerId !== current.id) return;
+    if (current.pts.length < 3) {
+      strokes.splice(strokes.indexOf(current), 1);
+      idle = 0;
+    } else {
+      lastEndReal = e.timeStamp / 1000;
+      current.active = false;
+      saveDraft();
+    }
+    current = null;
+    updateButtons();
+  };
+  cvL.addEventListener('pointerup', end);
+  cvL.addEventListener('pointercancel', end);
+  addEventListener('pointermove', () => { if (!current) idle = 0; }, { passive: true });
+
+  // ================= ループ =================
+  const panel = $('panel'), caption = $('caption');
+  function tick(now) {
+    const dt = Math.min(0.1, (now - last) / 1000); last = now;
+    if (running) {
+      t += dt;
+      hue = (hue + degPerSec * dt) % 360;
+      angle = (angle + ANGLE_DPS * dt) % 360;
+      paintBackground();
+    }
+    drawLight();
+    if (!current && !sheetOpen()) idle += dt;
+    const off = idle > 4;
+    panel.classList.toggle('off', off);
+    caption.classList.toggle('off', off);
+    requestAnimationFrame(tick);
+  }
+
+  // ================= 操作 =================
+  const toSpeed = v => MIN_DPS * Math.pow(MAX_DPS / MIN_DPS, v / 100);
+  const fromSpeed = d => Math.round(100 * Math.log(d / MIN_DPS) / Math.log(MAX_DPS / MIN_DPS));
+  function showSpeed() {
+    const sec = 360 / degPerSec;
+    $('speedOut').textContent = sec >= 60 ? `一周 ${(sec / 60).toFixed(sec >= 600 ? 0 : 1)}分` : `一周 ${Math.round(sec)}秒`;
+  }
+  $('speed').addEventListener('input', e => { degPerSec = toSpeed(+e.target.value); showSpeed(); });
+
+  function showSpread() {
+    $('spreadOut').textContent = spread === 0 ? '0°（一色）' : spread === 360 ? '360°（全色）' : `${spread}°`;
+  }
+  $('spread').addEventListener('input', e => { spread = +e.target.value; showSpread(); paintBackground(); });
+
+  function showBreath() {
+    const v = breath * 100;
+    $('breathOut').textContent = v === 0 ? 'なし' : v < 25 ? 'かすか' : v < 60 ? 'ふつう' : v < 85 ? '深い' : 'とても深い';
+  }
+  $('breath').addEventListener('input', e => { breath = +e.target.value / 100; showBreath(); paintBackground(); });
+
+  function trailFromSlider(v) { return 0.6 * v / 100; }
+  function showTrail() {
+    const v = +$('trail').value;
+    $('trailOut').textContent = v === 0 ? '残さない' : v < 30 ? '淡く' : v < 70 ? 'ほどよく' : '濃く';
+  }
+  $('trail').addEventListener('input', e => { trail = trailFromSlider(+e.target.value); showTrail(); rebake(); });
+
+  function getSettings() {
+    return { speed: +degPerSec.toFixed(4), spread, breath: +breath.toFixed(2), trail: +$('trail').value };
+  }
+  function applySettings(s) {
+    if (!s) return;
+    degPerSec = Math.min(MAX_DPS, Math.max(MIN_DPS, +s.speed || 3));
+    spread = Math.min(360, Math.max(0, +s.spread || 0));
+    breath = Math.min(1, Math.max(0, +s.breath || 0));
+    const tv = Math.min(100, Math.max(0, +s.trail || 0));
+    $('speed').value = fromSpeed(degPerSec);
+    $('spread').value = spread;
+    $('breath').value = Math.round(breath * 100);
+    $('trail').value = tv;
+    trail = trailFromSlider(tv);
+    showSpeed(); showSpread(); showBreath(); showTrail();
+    paintBackground(); rebake();
+  }
+
+  function updateButtons() {
+    const has = strokes.some(s => !s.active);
+    $('replay').disabled = !has; $('undo').disabled = !has; $('clear').disabled = !has;
+    $('saveWork').disabled = !has;
+  }
+
+  $('replay').addEventListener('click', () => replay());
+  $('undo').addEventListener('click', () => {
+    for (let i = strokes.length - 1; i >= 0; i--) {
+      if (!strokes[i].active) { strokes.splice(i, 1); break; }
+    }
+    rebake(); saveDraft(); updateButtons();
+  });
+  let clearArmed = null;
+  $('clear').addEventListener('click', e => {
+    const b = e.currentTarget;
+    if (!clearArmed) {
+      b.classList.add('warn'); b.textContent = 'もう一度押すと消えます';
+      clearArmed = setTimeout(() => { b.classList.remove('warn'); b.textContent = 'すべて消す'; clearArmed = null; }, 3000);
+      return;
+    }
+    clearTimeout(clearArmed); clearArmed = null;
+    b.classList.remove('warn'); b.textContent = 'すべて消す';
+    strokes = []; current = null; lastEndReal = null;
+    rebake(); saveDraft(); updateButtons();
+  });
+  $('pause').addEventListener('click', e => {
+    running = !running;
+    e.currentTarget.setAttribute('aria-pressed', String(!running));
+    e.currentTarget.textContent = running ? '一時停止' : '再開';
+  });
+
+  // ================= 小さな知らせ =================
+  let toastTimer = null;
+  function toast(msg) {
+    const el = $('toast');
+    el.textContent = msg; el.classList.remove('gone');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.add('gone'), 3200);
+  }
+
+  // ================= 重ねて開く面 =================
+  const sheets = ['saveSheet', 'gallerySheet', 'linkSheet', 'helpSheet'];
+  const sheetOpen = () => sheets.some(id => !$(id).hidden);
+  function openSheet(id) { sheets.forEach(s => $(s).hidden = s !== id); idle = 0; }
+  function closeSheets() { sheets.forEach(s => $(s).hidden = true); idle = 0; }
+  sheets.forEach(id => {
+    const el = $(id);
+    el.addEventListener('pointerdown', e => { if (e.target === el) closeSheets(); });
+  });
+  addEventListener('keydown', e => { if (e.key === 'Escape' && sheetOpen()) closeSheets(); });
+
+  // ================= 作品集（db） =================
+  let db = null, user = null, myId = null, amOwner = false;
+  let works = [];                  // 作品集の一覧（題・作者・日付など、軽い情報だけ）
+  let viewingId = null;
+  let staticMode = false;          // GitHub に置いた写し：作品集は works.json から読むだけ
+  const staticPieces = {};
+  let mySettings = null;           // 作品を見る前の自分の設定
+
+  function fmtDate(ms) {
+    try { return new Date(ms).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' }); }
+    catch (e) { return ''; }
+  }
+  async function nameOf(id) {
+    if (!user || !id) return '';
+    const ps = await user.profiles([id]);
+    return (ps[id] && ps[id].name) || '';
+  }
+
+  async function renderGallery() {
+    const list = $('workList');
+    if (!works.length) {
+      list.replaceChildren(Object.assign(document.createElement('div'), {
+        className: 'empty',
+        textContent: 'まだ作品はありません。線を描いて「作品として保存」を押すと、ここに並びます。'
+      }));
+      return;
+    }
+    const ids = [...new Set(works.map(w => w.author).filter(Boolean))];
+    const ps = !staticMode && user && ids.length ? await user.profiles(ids) : {};
+    const frag = document.createDocumentFragment();
+    for (const w of works) {
+      const row = document.createElement('div');
+      row.style.display = 'flex'; row.style.alignItems = 'center'; row.style.gap = '4px';
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'work ctrl'; b.style.flex = '1'; b.style.minWidth = '0';
+      const wt = document.createElement('span'); wt.className = 'wt'; wt.textContent = w.title || '無題';
+      const wm = document.createElement('span'); wm.className = 'wm';
+      const who = w.authorName || (ps[w.author] && ps[w.author].name) || '名前の分からない人';
+      wm.textContent = `${who} ・ ${fmtDate(w.createdAt)}`;
+      const wn = document.createElement('span'); wn.className = 'wn num'; wn.textContent = `${w.n || 0}本`;
+      b.append(wt, wm, wn);
+      b.addEventListener('click', () => openWork(w.id));
+      row.append(b);
+      if (!staticMode && (w.author === myId || amOwner)) {
+        const del = document.createElement('button');
+        del.type = 'button'; del.className = 'btn ctrl'; del.textContent = '削除';
+        let armed = null;
+        del.addEventListener('click', async () => {
+          if (!armed) {
+            del.classList.add('warn'); del.textContent = 'もう一度で削除';
+            armed = setTimeout(() => { del.classList.remove('warn'); del.textContent = '削除'; armed = null; }, 3000);
+            return;
+          }
+          clearTimeout(armed); del.disabled = true;
+          try {
+            await db.doc('gallery/' + w.id).delete();
+            await db.doc('pieces/' + w.id).delete();
+            toast('作品を削除しました');
+          } catch (e) { toast('削除できませんでした。少し待ってからもう一度お試しください'); del.disabled = false; }
+        });
+        row.append(del);
+      }
+      frag.append(row);
+    }
+    list.replaceChildren(frag);
+  }
+
+  async function openWork(id) {
+    if (!db && !staticMode) return;
+    closeSheets();
+    let meta, piece;
+    if (staticMode) {
+      meta = works.find(w => w.id === id); piece = staticPieces[id];
+      if (!meta || !piece) { toast('この作品は見つかりませんでした'); fallbackToDraft(); return; }
+    } else try {
+      const [m, p] = await Promise.all([db.doc('gallery/' + id).get(), db.doc('pieces/' + id).get()]);
+      if (!m.exists || !p.exists) { toast('この作品は見つかりませんでした。削除されたのかもしれません'); fallbackToDraft(); return; }
+      meta = m.data(); piece = p.data();
+    } catch (e) { toast('作品を読み込めませんでした。少し待ってからもう一度お試しください'); fallbackToDraft(); return; }
+
+    if (mode === 'draw') { saveDraft(); mySettings = getSettings(); }
+    if (current) { current = null; }
+    mode = 'view'; viewingId = id;
+    body.classList.add('viewing');
+    strokes = decodeStrokes(piece.strokes);
+    applySettings(meta.settings);
+    $('invite').classList.add('gone');
+    $('drawBtns').hidden = true;
+    $('capTitle').textContent = meta.title || '無題';
+    const who = meta.authorName || (await nameOf(meta.author)) || '名前の分からない人';
+    $('capMeta').textContent = `${who} ・ ${fmtDate(meta.createdAt)}`;
+    caption.hidden = false; idle = 0;
+    replay();
+  }
+
+  function backToMine() {
+    mode = 'draw'; viewingId = null;
+    body.classList.remove('viewing');
+    caption.hidden = true;
+    $('drawBtns').hidden = false;
+    strokes = loadDraft();
+    lastEndReal = null;
+    if (mySettings) applySettings(mySettings);
+    strokes.forEach(s => { s.baked = true; });
+    rebake();
+    if (!strokes.length) $('invite').classList.remove('gone');
+    updateButtons();
+    try { if (location.hash) history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+  }
+
+  $('capReplay').addEventListener('click', () => replay());
+  $('capBack').addEventListener('click', backToMine);
+  $('capLink').addEventListener('click', () => {
+    const base = staticMode ? location.origin + location.pathname : ARTIFACT_URL;
+    $('linkText').value = `${base}#w-${viewingId}`;
+    openSheet('linkSheet');
+  });
+  $('linkCopy').addEventListener('click', () => {
+    const input = $('linkText');
+    const fallback = () => { input.focus(); input.select(); toast('選択しました。コピーしてお使いください'); };
+    try {
+      navigator.clipboard.writeText(input.value).then(() => toast('リンクをコピーしました'), fallback);
+    } catch (e) { fallback(); }
+  });
+  $('linkClose').addEventListener('click', closeSheets);
+  $('openHelp').addEventListener('click', () => openSheet('helpSheet'));
+  $('helpClose').addEventListener('click', closeSheets);
+
+  $('openGallery').addEventListener('click', () => { renderGallery(); openSheet('gallerySheet'); });
+  $('galleryClose').addEventListener('click', closeSheets);
+
+  $('saveWork').addEventListener('click', () => {
+    $('workTitle').value = '';
+    openSheet('saveSheet');
+    setTimeout(() => $('workTitle').focus(), 50);
+  });
+  $('saveCancel').addEventListener('click', closeSheets);
+  $('saveForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    if (!db) return;
+    const list = strokes.filter(s => !s.active && s.pts.length);
+    if (!list.length) { closeSheets(); return; }
+    const go = $('saveGo'); go.disabled = true; go.textContent = '保存しています…';
+    try {
+      // 大きすぎる作品は、点を間引いて上限に収める（線の形と時間はほぼ保たれる）
+      let step = 1, enc = encodeStrokes(list, step);
+      while (JSON.stringify(enc).length > MAX_DOC && step < 16) { step *= 2; enc = encodeStrokes(list, step); }
+      if (JSON.stringify(enc).length > MAX_DOC) throw { code: 'too_big' };
+      const id = 'w' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+      const title = $('workTitle').value.trim().slice(0, 40);
+      await db.doc('pieces/' + id).set({ strokes: enc });
+      await db.doc('gallery/' + id).set({
+        title, author: myId, createdAt: Date.now(), n: list.length, settings: getSettings()
+      });
+      closeSheets();
+      toast(step > 1 ? '保存しました（線が多いため、点を少し間引きました）' : `「${title || '無題'}」を作品集に保存しました`);
+    } catch (err) {
+      const code = err && err.code;
+      toast(code === 'too_big' ? '線が多すぎて保存できません。いくつか戻してからお試しください'
+          : code === 'quota_exceeded' ? '作品集がいっぱいです。古い作品を削除してからお試しください'
+          : code === 'invalid_argument' ? 'このページでは保存の権限がありません'
+          : '保存できませんでした。少し待ってからもう一度お試しください');
+    } finally { go.disabled = false; go.textContent = '保存する'; }
+  });
+
+  async function connectStatic() {
+    try {
+      const res = await fetch('works.json', { cache: 'no-cache' });
+      if (!res.ok) throw 0;
+      const data = await res.json();
+      works = (data.works || []).slice().sort((a, b) => b.createdAt - a.createdAt);
+      works.forEach(w => { staticPieces[w.id] = { strokes: w.strokes }; });
+    } catch (e) { fallbackToDraft(); return; }
+    staticMode = true;
+    $('openGallery').hidden = false;
+    $('hSaveT').hidden = true; $('hSaveD').hidden = true;
+    $('hGallery').textContent = '作者が選んで載せた作品の一覧です。選ぶとその作品が再生されます。ここで描いた線は、この端末の下書きとして残ります。';
+    const m = /^#w-([A-Za-z0-9]+)$/.exec(location.hash || '');
+    if (m) openWork(m[1]);
+  }
+
+  // 作品集が使えない環境で作品リンクから開かれたときは、自分の下書きを出す
+  function fallbackToDraft() {
+    if (!/^#w-/.test(location.hash || '') || strokes.length) return;
+    const d = loadDraft();
+    if (d.length) { strokes = d; $('invite').classList.add('gone'); replay(); updateButtons(); }
+  }
+
+  async function connect() {
+    if (!window.claude || !window.claude.use) { await connectStatic(); return; }
+    const [d, u] = await Promise.all([claude.use('db'), claude.use('user')]);
+    if (!d) { fallbackToDraft(); return; }
+    db = d; user = u;
+    if (user) {
+      myId = await user.id();
+      amOwner = await user.isOwner();
+      const canWrite = await user.can('data.write');
+      $('saveWork').hidden = !(myId && canWrite !== false);
+    }
+    $('openGallery').hidden = false;
+    updateButtons();
+    db.collection('gallery').orderBy('createdAt', 'desc').limit(300).onSnapshot(snap => {
+      works = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      if (!$('gallerySheet').hidden) renderGallery();
+    }, () => { /* 一覧が届かないときは、作品集を開いても空のまま */ });
+
+    // リンクから開かれたとき：#w-… の作品をすぐに再生する
+    const m = /^#w-([A-Za-z0-9]+)$/.exec(location.hash || '');
+    if (m) openWork(m[1]);
+  }
+
+  // ================= 始まり =================
+  trail = trailFromSlider(+$('trail').value);
+  $('speed').value = fromSpeed(degPerSec);
+  showSpeed(); showSpread(); showBreath(); showTrail();
+  resize();
+  addEventListener('resize', resize);
+  const saved = loadDraft();
+  if (saved.length && !/^#w-/.test(location.hash || '')) {
+    strokes = saved;
+    $('invite').classList.add('gone');
+    replay();
+  }
+  updateButtons();
+  requestAnimationFrame(tick);
+  connect();
+</script>
+
+</body></html>
