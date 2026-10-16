@@ -172,6 +172,7 @@
     <span class="meta" id="capMeta"></span>
   </div>
   <div class="btns">
+    <button type="button" class="btn ctrl" id="capRename" hidden>題を直す</button>
     <button type="button" class="btn ctrl" id="capReplay">もう一度再生</button>
     <button type="button" class="btn ctrl" id="capLink">共有リンク</button>
     <button type="button" class="btn ctrl strong" id="capBack">自分の画面に戻る</button>
@@ -225,6 +226,17 @@
   </form>
 </div>
 
+<div class="sheet-wrap" id="renameSheet" hidden>
+  <form class="sheet" id="renameForm" autocomplete="off">
+    <h2>題を直す</h2>
+    <input type="text" id="renameTitle" maxlength="40" placeholder="題（空にすると「無題」）" aria-label="新しい題">
+    <div class="row">
+      <button type="button" class="btn ctrl" id="renameCancel">やめる</button>
+      <button type="submit" class="btn ctrl strong" id="renameGo">直す</button>
+    </div>
+  </form>
+</div>
+
 <div class="sheet-wrap" id="gallerySheet" hidden>
   <div class="sheet">
     <h2>作品集</h2>
@@ -272,6 +284,7 @@
       <dt id="hSaveT">作品として保存</dt><dd id="hSaveD">今の線を、描いた順・速さと上の四つの設定ごと、題を付けて保存します。</dd>
       <dt>作品集</dt><dd id="hGallery">保存された作品の一覧です。選ぶとその作品が再生されます。このページを共有された人なら誰でも見られます。</dd>
       <dt>共有リンク</dt><dd>作品を見ているときに出ます。その作品がいきなり再生されるリンクです。</dd>
+      <dt id="hRenameT">題を直す</dt><dd id="hRenameD">作品を見ているときに出ます。描いた本人とページの持ち主だけが使えます。</dd>
       <dt>自分の画面に戻る</dt><dd>作品を見終えて、自分の下書きに戻ります。</dd>
       <div class="sec">操作の出し方</div>
       <dt>操作パネル</dt><dd>何もしないと数秒で消えます。マウスを動かすか、画面に軽く触れると戻ります。</dd>
@@ -705,7 +718,7 @@
   }
 
   // ================= 重ねて開く面 =================
-  const sheets = ['saveSheet', 'gallerySheet', 'linkSheet', 'helpSheet'];
+  const sheets = ['saveSheet', 'gallerySheet', 'linkSheet', 'helpSheet', 'renameSheet'];
   const sheetOpen = () => sheets.some(id => !$(id).hidden);
   function openSheet(id) { sheets.forEach(s => $(s).hidden = s !== id); idle = 0; }
   function closeSheets() { sheets.forEach(s => $(s).hidden = true); idle = 0; }
@@ -718,7 +731,7 @@
   // ================= 作品集（db） =================
   let db = null, user = null, myId = null, amOwner = false;
   let works = [];                  // 作品集の一覧（題・作者・日付など、軽い情報だけ）
-  let viewingId = null;
+  let viewingId = null, viewingMeta = null;
   let staticMode = false;          // GitHub に置いた写し：作品集は works.json から読むだけ
   const staticPieces = {};
   let mySettings = null;           // 作品を見る前の自分の設定
@@ -797,7 +810,8 @@
 
     if (mode === 'draw') { saveDraft(); mySettings = getSettings(); }
     if (current) { current = null; }
-    mode = 'view'; viewingId = id;
+    mode = 'view'; viewingId = id; viewingMeta = meta;
+    $('capRename').hidden = staticMode || !db || !(meta.author === myId || amOwner);
     body.classList.add('viewing');
     strokes = decodeStrokes(piece.strokes);
     applySettings(meta.settings);
@@ -811,7 +825,7 @@
   }
 
   function backToMine() {
-    mode = 'draw'; viewingId = null;
+    mode = 'draw'; viewingId = null; viewingMeta = null;
     body.classList.remove('viewing');
     caption.hidden = true;
     $('drawBtns').hidden = false;
@@ -826,6 +840,27 @@
   }
 
   $('capReplay').addEventListener('click', () => replay());
+  $('capRename').addEventListener('click', () => {
+    $('renameTitle').value = (viewingMeta && viewingMeta.title) || '';
+    openSheet('renameSheet');
+    setTimeout(() => { $('renameTitle').focus(); $('renameTitle').select(); }, 50);
+  });
+  $('renameCancel').addEventListener('click', closeSheets);
+  $('renameForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    if (!db || !viewingId) return;
+    const title = $('renameTitle').value.trim().slice(0, 40);
+    const go = $('renameGo'); go.disabled = true;
+    try {
+      await db.doc('gallery/' + viewingId).update({ title });
+      if (viewingMeta) viewingMeta = { ...viewingMeta, title };
+      $('capTitle').textContent = title || '無題';
+      closeSheets();
+      toast(`題を「${title || '無題'}」に直しました`);
+    } catch (err) {
+      toast(err && err.code === 'invalid_argument' ? 'この作品の題を直す権限がありません' : '直せませんでした。少し待ってからもう一度お試しください');
+    } finally { go.disabled = false; }
+  });
   $('capBack').addEventListener('click', backToMine);
   $('capLink').addEventListener('click', () => {
     const base = staticMode ? location.origin + location.pathname : ARTIFACT_URL;
@@ -891,6 +926,7 @@
     staticMode = true;
     $('openGallery').hidden = false;
     $('hSaveT').hidden = true; $('hSaveD').hidden = true;
+    $('hRenameT').hidden = true; $('hRenameD').hidden = true;
     $('hGallery').textContent = '作者が選んで載せた作品の一覧です。選ぶとその作品が再生されます。ここで描いた線は、この端末の下書きとして残ります。';
     const m = /^#w-([A-Za-z0-9]+)$/.exec(location.hash || '');
     if (m) openWork(m[1]);
