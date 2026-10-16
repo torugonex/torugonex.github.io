@@ -205,6 +205,9 @@
     <button type="button" class="btn ctrl" id="undo">一つ戻す</button>
     <button type="button" class="btn ctrl" id="clear">すべて消す</button>
     <button type="button" class="btn ctrl" id="pause" aria-pressed="false">一時停止</button>
+    <button type="button" class="btn ctrl" id="exportDraft">下書きを書き出す</button>
+    <button type="button" class="btn ctrl" id="importDraft">下書きを読み込む</button>
+    <input type="file" id="importFile" accept=".json,application/json" hidden>
     <button type="button" class="btn ctrl strong" id="saveWork" hidden>作品として保存</button>
     <button type="button" class="btn ctrl" id="openGallery" hidden>作品集</button>
   </div>
@@ -258,6 +261,8 @@
       <dt>すべて消す</dt><dd>画面の線を全部消します。二度押したときだけ消えます。</dd>
       <dt>一時停止</dt><dd>背景の流れと線の薄れが止まります。</dd>
       <dt>下書き</dt><dd>描いている途中の線は自動でこの端末に残り、次に開くと再生されます。ほかの人には見えません。</dd>
+      <dt>下書きを書き出す</dt><dd>今の下書きを小さなファイルにして保存します。別の端末や、my works版とclaude.ai版のあいだで下書きを運べます。</dd>
+      <dt>下書きを読み込む</dt><dd>書き出したファイルを選ぶと、その線が今の下書きのあとに加わり、描いた順に再生されます。</dd>
       <div class="sec">整える</div>
       <dt>速さ</dt><dd>背景の色が移り変わる速さです。</dd>
       <dt>色の幅</dt><dd>画面の端から端までに、どれだけ多くの色を並べるかです。0で一色、360で虹。</dd>
@@ -601,6 +606,7 @@
   function updateButtons() {
     const has = strokes.some(s => !s.active);
     $('replay').disabled = !has; $('undo').disabled = !has; $('clear').disabled = !has;
+    $('exportDraft').disabled = !has;
     $('saveWork').disabled = !has;
   }
 
@@ -624,6 +630,65 @@
     strokes = []; current = null; lastEndReal = null;
     rebake(); saveDraft(); updateButtons();
   });
+  // ================= 下書きの書き出しと読み込み =================
+  const DRAFT_FORMAT = 'te-no-ato-draft';
+  function stamp() {
+    const d = new Date(), z = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}${z(d.getMonth() + 1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}`;
+  }
+  $('exportDraft').addEventListener('click', async () => {
+    const list = strokes.filter(s => !s.active && s.pts.length);
+    if (!list.length) { toast('書き出す線がありません'); return; }
+    const data = JSON.stringify({
+      format: DRAFT_FORMAT, version: 1, exportedAt: Date.now(),
+      settings: getSettings(), strokes: encodeStrokes(list, 1)
+    });
+    const filename = `te-no-ato-draft-${stamp()}.json`;
+    // claude.ai の中では、ファイルの保存は downloads の仕組みを通す
+    const dl = window.claude && window.claude.use ? await claude.use('downloads') : null;
+    if (dl) {
+      try { await dl.save({ filename, data }); toast('下書きを書き出しました'); }
+      catch (e) { if (!e || e.code !== 'declined') toast('書き出せませんでした。少し待ってからもう一度お試しください'); }
+      return;
+    }
+    try {
+      const url = URL.createObjectURL(new Blob([data], { type: 'application/json' }));
+      const a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.append(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+      toast('下書きを書き出しました');
+    } catch (e) { toast('この画面では書き出せません'); }
+  });
+  $('importDraft').addEventListener('click', () => $('importFile').click());
+  $('importFile').addEventListener('change', e => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      let data;
+      try { data = JSON.parse(reader.result); } catch (err) { data = null; }
+      if (!data || data.format !== DRAFT_FORMAT || !Array.isArray(data.strokes)) {
+        toast('このファイルは「手の跡」の下書きではないようです'); return;
+      }
+      const added = decodeStrokes(data.strokes);
+      if (!added.length) { toast('ファイルに線が入っていませんでした'); return; }
+      if (mode !== 'draw') backToMine();
+      if (strokes.length && added[0]) added[0].gap = 1;   // 今の下書きのあと、一呼吸おいて続ける
+      strokes = strokes.filter(s => !s.active).concat(added);
+      current = null;
+      applySettings(data.settings);
+      saveDraft();
+      $('invite').classList.add('gone');
+      updateButtons();
+      replay();
+      toast(`${added.length}本の線を読み込みました`);
+    };
+    reader.onerror = () => toast('ファイルを読めませんでした');
+    reader.readAsText(file);
+  });
+
   $('pause').addEventListener('click', e => {
     running = !running;
     e.currentTarget.setAttribute('aria-pressed', String(!running));
