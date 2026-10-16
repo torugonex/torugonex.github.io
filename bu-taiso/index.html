@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>武の10分体操</title>
+<style>html{color-scheme:light}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<meta name="theme-color" content="#2d4a8a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="武の10分体操">
+</head>
+<body>
+<style>
+/* Layout: 前作と同じ一本の縦スクロール。藍の差し色で別版と分かるように。段（初段・二段・三段）の切り替えで回数が変わる */
+:root{
+  --bg:#f2f3f6; --surface:#ffffff; --ink:#1d2433; --muted:#5b6478;
+  --accent:#2d4a8a; --accent-soft:#dfe5f2; --line:#d3d8e3; --warn:#8a5a12;
+  --display:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
+  --body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12151c; --surface:#1a1f29; --ink:#e3e7f0; --muted:#9aa3b5;
+  --accent:#93b0ea; --accent-soft:#232d42; --line:#2c3443; --warn:#e0a65a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12151c; --surface:#1a1f29; --ink:#e3e7f0; --muted:#9aa3b5;
+  --accent:#93b0ea; --accent-soft:#232d42; --line:#2c3443; --warn:#e0a65a; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.8}
+.wrap{max-width:44rem;margin:0 auto;padding-inline:18px;padding-block:28px 56px}
+header h1{font-family:var(--display);font-size:2rem;line-height:1.3;margin:0 0 .4rem;text-wrap:balance}
+.lead{color:var(--muted);margin:0}
+.aims{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 0;padding:0;list-style:none}
+.aims li{background:var(--accent-soft);color:var(--accent);font-size:.85rem;font-weight:500;padding:3px 12px;border-radius:999px}
+.key{margin:26px 0 8px;padding:14px 16px;border-left:3px solid var(--accent);background:var(--surface)}
+.key b{color:var(--accent)}
+.key a,.inline a{color:var(--accent)}
+h2{font-family:var(--display);font-size:1.35rem;margin:36px 0 10px}
+.rules{margin:0;padding:0;list-style:none;display:grid;gap:10px}
+.rules li{display:grid;grid-template-columns:2.2rem 1fr;gap:10px;align-items:baseline}
+.rules .k{font-family:var(--display);font-size:1.3rem;color:var(--accent);text-align:center}
+.levels{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 6px}
+.levels button{font:inherit;font-size:.95rem;font-weight:700;padding:6px 18px;border-radius:999px;border:1.5px solid var(--accent);background:var(--surface);color:var(--accent);cursor:pointer}
+.levels button[aria-pressed="true"]{background:var(--accent);color:var(--surface)}
+.levels button:focus-visible{outline:3px solid var(--accent-soft);outline-offset:2px}
+.levelnote{color:var(--muted);font-size:.92rem;margin:0}
+ol.steps{list-style:none;margin:0;padding:0}
+.step{display:grid;grid-template-columns:4.2rem 1fr;gap:14px;padding-block:18px;border-top:1px solid var(--line)}
+.step>div{min-width:0}
+.time{font-variant-numeric:tabular-nums;color:var(--muted);font-size:.85rem;line-height:1.4;padding-top:4px}
+.time strong{display:block;font-family:var(--display);font-size:1.4rem;color:var(--accent)}
+.step h3{margin:0;font-size:1.12rem}
+.step h3 .yomi{font-weight:400;font-size:.82rem;color:var(--muted);margin-left:4px}
+.plain{margin:0 0 4px;font-size:.95rem}
+.for{font-size:.8rem;color:var(--muted);letter-spacing:.04em;margin:0 0 6px}
+.yoho{margin:6px 0 8px;padding:8px 12px;background:var(--accent-soft);border-radius:6px;font-size:.93rem}
+.yoho .tag{font-family:var(--display);font-weight:700;color:var(--accent);margin-right:8px;letter-spacing:.1em}
+.step p{margin:0 0 6px}
+.rep{display:inline-block;font-weight:700;color:var(--accent)}
+.tip{font-size:.92rem;color:var(--muted)}
+.fig{display:block;width:100%;max-width:240px;aspect-ratio:16/15;margin:6px 0 10px;background:var(--surface);border:1px solid var(--line);border-radius:8px}
+.figs{display:flex;flex-wrap:wrap;gap:10px;margin:6px 0 10px}
+.figs figure{margin:0;flex:1 1 120px;max-width:240px;min-width:0}
+.figs .fig{margin:0}
+.figs figcaption{font-size:.78rem;color:var(--muted);text-align:center;margin-top:2px;letter-spacing:.04em}
+.caution{padding-left:1.2em}
+.caution li{margin:4px 0}
+.caution strong{color:var(--warn)}
+footer{margin-top:36px;font-size:.85rem;color:var(--muted)}
+</style>
+
+<div class="wrap">
+<header>
+  <h1>武の10分体操</h1>
+  <p class="lead">太極拳の型を、技の意味（用法）とともに。腰を落としたまま、ゆっくり動くことで、脚と体幹に負荷をかけ続けます。</p>
+  <ul class="aims"><li>脚の筋力</li><li>体幹</li><li>片脚バランス</li><li>骨盤底筋</li></ul>
+</header>
+
+<div class="key">突く・押す・蹴る瞬間に<b>息を吐き、骨盤底を引き上げる。</b>技に力を込める瞬間が、体幹と骨盤底筋を締める瞬間になります。<span class="inline">骨盤底の場所と引き上げ方は<a href="https://torugonex.github.io/taiso/#pelvic">朝の10分体操</a>で解説しています。</span></div>
+
+<h2>鍛えるための三つの決まり</h2>
+<ul class="rules">
+  <li><span class="k">緩</span><span><b>ゆっくり動く。</b>突きも押しも4秒かけて。速く動くより、筋肉に力がかかっている時間が長くなります。</span></li>
+  <li><span class="k">沈</span><span><b>腰を落としたまま次の型へ。</b>立ち上がって休まないので、太ももが働き続けます。</span></li>
+  <li><span class="k">進</span><span><b>楽になったら段を上げる。</b>同じ負荷のままでは、筋力は伸びにくくなります。</span></li>
+</ul>
+
+<h2>段を選ぶ</h2>
+<div class="levels" role="group" aria-label="段の選択">
+  <button type="button" id="lv1" data-lv="1" aria-pressed="true">初段</button>
+  <button type="button" id="lv2" data-lv="2" aria-pressed="false">二段</button>
+  <button type="button" id="lv3" data-lv="3" aria-pressed="false">三段</button>
+</div>
+<p class="levelnote" id="levelnote">初段：腰は浅め、回数も少なめ。まずは型の形を覚える段階です。</p>
+
+<h2>本編（約10分）</h2>
+<ol class="steps">
+  <li class="step">
+    <div class="time"><strong>1</strong>0:00〜1:00</div>
+    <div>
+      <h3>站樁<span class="yomi">たんとう</span></h3>
+      <p class="plain">腰を落として、球を抱えて立つ</p>
+      <p class="for">太もも・体幹・骨盤底筋</p>
+      <p class="yoho"><span class="tag">用法</span>押されても崩れない土台をつくる。すべての技の根になる構えです。</p>
+      <div class="figs"><figure><canvas class="fig" data-ex="zhan" role="img" aria-label="足を広げて腰を落とし、腕で球を抱えて呼吸する（正面）"></canvas><figcaption>正面</figcaption></figure><figure><canvas class="fig" data-ex="zhan_s" role="img" aria-label="足を広げて腰を落とし、腕で球を抱えて呼吸する（横から）"></canvas><figcaption>横から</figcaption></figure></div>
+      <p>足を肩幅の1.5倍に開き、膝をつま先の向きに曲げて腰を落とす。お腹の前で大きな球を抱える。吐くたびに足裏で床を押し、骨盤底を引き上げる。</p>
+      <p><span class="rep" data-l1="40秒" data-l2="60秒" data-l3="60秒・腰をもう一段低く">40秒</span></p>
+    </div>
+  </li>
+  <li class="step">
+    <div class="time"><strong>2</strong>1:00〜2:20</div>
+    <div>
+      <h3>搬攔捶<span class="yomi">はんらんすい</span></h3>
+      <p class="plain">払って、遮って、拳で突く</p>
+      <p class="for">太もも・お尻・体幹・肩</p>
+      <p class="yoho"><span class="tag">用法</span>相手の腕を片手で払いのけ（搬）、遮り（攔）、空いたところへ拳を突き出す（捶）。拳は腕ではなく、後ろ足で床を押す力と腰の回転で出します。</p>
+      <canvas class="fig" data-ex="punch" role="img" aria-label="片足を前に出した構えで、片手で遮りながら、腰から拳をゆっくり突き出す"></canvas>
+      <p>片足を大きく前へ出し、前の膝を曲げる（弓歩）。拳を腰につけ、反対の手を胸の前に立てて構える。後ろ足で床を押し、体重を前へ移しながら、4秒かけて拳を突き出す。突きと同時に、立てた手を手前へ引く。</p>
+      <p><span class="rep" data-l1="左右各5回" data-l2="左右各8回" data-l3="左右各8回・突き切って3秒止める">左右各5回</span></p>
+      <p class="tip">肘は伸ばし切らず、わずかにゆとりを残す。肩をすくめない。</p>
+    </div>
+  </li>
+  <li class="step">
+    <div class="time"><strong>3</strong>2:20〜3:40</div>
+    <div>
+      <h3>摟膝拗歩<span class="yomi">ろうしつようほ</span></h3>
+      <p class="plain">膝の前を払い、反対の手で押す</p>
+      <p class="for">太もも・お尻・体幹</p>
+      <p class="yoho"><span class="tag">用法</span>下から来る蹴りや突きを、片手で膝の外へ払いのける。同時に反対の手のひらで相手の胸を押し出す。</p>
+      <canvas class="fig" data-ex="brush" role="img" aria-label="弓歩で、片手を膝の前へ払い下ろし、反対の手のひらを前へ押し出す"></canvas>
+      <p>弓歩で立ち、片手を耳の横に、反対の手を胸の前に置く。体重を前へ移しながら、胸の前の手を前膝の外へ払い下ろし、耳の横の手のひらを前へ押し出す。4秒かけて押し、吸いながら後ろへ戻る。</p>
+      <p><span class="rep" data-l1="左右各4回" data-l2="左右各6回" data-l3="左右各6回・前膝をもう少し深く">左右各4回</span></p>
+      <p class="tip">前の膝はつま先より前に出さない。上体は倒さず、まっすぐ前へ運ぶ。</p>
+    </div>
+  </li>
+  <li class="step">
+    <div class="time"><strong>4</strong>3:40〜4:50</div>
+    <div>
+      <h3>金鶏独立<span class="yomi">きんけいどくりつ</span></h3>
+      <p class="plain">片脚で立ち、膝と手を上げる</p>
+      <p class="for">片脚の筋力・バランス・体幹</p>
+      <p class="yoho"><span class="tag">用法</span>上げた手で相手の腕を下から跳ね上げ、空いた胴へ膝を突き上げる。反対の手は相手の手を押さえ込む。</p>
+      <div class="figs"><figure><canvas class="fig" data-ex="rooster" role="img" aria-label="片膝を腰の高さまで上げ、同じ側の手を頭上へ、反対の手を下へ押さえる（正面）"></canvas><figcaption>正面</figcaption></figure><figure><canvas class="fig" data-ex="rooster_s" role="img" aria-label="片膝を腰の高さまで上げ、同じ側の手を頭上へ、反対の手を下へ押さえる（横から）"></canvas><figcaption>横から</figcaption></figure></div>
+      <p>椅子の背や壁のそばに立つ。吐きながら片膝を腰の高さへ上げ、同じ側の手のひらを頭の上へ、反対の手のひらを腰の横で下へ押さえる。そのままこらえ、ゆっくり下ろす。</p>
+      <p><span class="rep" data-l1="左右各3回・3秒こらえる" data-l2="左右各4回・5秒こらえる" data-l3="左右各5回・8秒こらえる">左右各3回・3秒こらえる</span></p>
+      <p class="tip">ふらついたら、すぐ椅子に手を添えてかまいません。軸足の膝はわずかに曲げておく。</p>
+    </div>
+  </li>
+  <li class="step">
+    <div class="time"><strong>5</strong>4:50〜6:10</div>
+    <div>
+      <h3>蹬脚<span class="yomi">とうきゃく</span></h3>
+      <p class="plain">膝を上げ、かかとで押し出す</p>
+      <p class="for">お尻・太もも・片脚バランス</p>
+      <p class="yoho"><span class="tag">用法</span>かかとで相手の膝やすねを押し止める。本来は高く蹴る型ですが、ここでは膝の高さまでにします。</p>
+      <canvas class="fig" data-ex="kick" role="img" aria-label="膝を上げてから、かかとを前へ押し出して止め、引き戻して下ろす"></canvas>
+      <p>椅子の背に片手を添えて立つ。反対側の膝を上げ、吐きながら、かかとで前の壁を押すように脚を伸ばす。つま先は上へ向ける。止めてから膝を引き戻し、足を下ろす。</p>
+      <p><span class="rep" data-l1="左右各3回・2秒止める" data-l2="左右各5回・3秒止める" data-l3="左右各5回・5秒止める">左右各3回・2秒止める</span></p>
+      <p class="tip">勢いで蹴らない。押し出しも引き戻しも、同じ速さでゆっくり。</p>
+    </div>
+  </li>
+  <li class="step">
+    <div class="time"><strong>6</strong>6:10〜7:10</div>
+    <div>
+      <h3>単鞭<span class="yomi">たんべん</span></h3>
+      <p class="plain">両腕を左右に張って、低くこらえる</p>
+      <p class="for">太もも・内もも・肩まわり</p>
+      <p class="yoho"><span class="tag">用法</span>指先をすぼめた手（鉤手）で相手の手首を引っかけ、反対の手のひらで押し放つ。低い構えで相手の力を受け止めます。</p>
+      <canvas class="fig" data-ex="whip" role="img" aria-label="足を大きく開いて腰を落とし、両腕を左右に張ったまま呼吸する"></canvas>
+      <p>足を大きく開いて腰を落とす。片手は指先を下へすぼめて横へ伸ばし、反対の手は手のひらを外へ向けて反対側へ張る。腕を下げずに、呼吸を続けてこらえる。</p>
+      <p><span class="rep" data-l1="20秒×1回" data-l2="20秒×2回（左右を入れ替えて）" data-l3="30秒×2回（左右を入れ替えて）">20秒×1回</span></p>
+      <p class="tip">こらえる型ほど息が止まりやすいので、声に出して数えるのも一つの手です。</p>
+    </div>
+  </li>
+  <li class="step">
+    <div class="time"><strong>7</strong>7:10〜8:10</div>
+    <div>
+      <h3>雲手<span class="yomi">うんしゅ</span></h3>
+      <p class="plain">低い構えのまま、横へ歩く</p>
+      <p class="for">お尻の横・太もも・体幹</p>
+      <p class="yoho"><span class="tag">用法</span>横から来る突きを、雲が流れるように両手で受け流す。足を運びながらも、腰の高さを変えないのが要です。</p>
+      <canvas class="fig" data-ex="cloud" role="img" aria-label="腰を落としたまま、片足ずつ横へ運び、両手を交互に顔の前へ回す"></canvas>
+      <p>腰を落とした構えから、片足を横へ一歩運び、もう一方の足を寄せる。手は顔の前を交互に回す。3歩進んだら、反対へ3歩戻る。</p>
+      <p><span class="rep" data-l1="2往復" data-l2="3往復" data-l3="3往復・腰をもう一段低く">2往復</span></p>
+      <p class="tip">足を寄せるときに立ち上がらない。頭の高さが変わらないのが目安です。</p>
+    </div>
+  </li>
+  <li class="step">
+    <div class="time"><strong>8</strong>8:10〜9:20</div>
+    <div>
+      <h3>下勢<span class="yomi">かせい</span></h3>
+      <p class="plain">片脚に沈み、反対の脚を伸ばす</p>
+      <p class="for">太もも・内もも・股関節</p>
+      <p class="yoho"><span class="tag">用法</span>低く沈んで相手の攻撃の下をくぐり、懐へ入る。伸ばした脚に沿って手を前へ差し込みます。</p>
+      <canvas class="fig" data-ex="snake" role="img" aria-label="足を大きく開き、片方の膝を曲げて沈み、反対の脚は伸ばしたまま、手を伸ばした脚に沿わせる"></canvas>
+      <p>足を大きく開いて立つ。片方の膝を曲げて体重をのせ、浅く沈む。反対の脚は伸ばしたまま、その脚に沿って手を差し伸べる。吸いながら中央へ戻り、反対側へ。</p>
+      <p><span class="rep" data-l1="左右各3回（浅く）" data-l2="左右各5回" data-l3="左右各5回・少し深く">左右各3回（浅く）</span></p>
+      <p class="tip">本来は床すれすれまで沈む型ですが、深さは膝が心地よい範囲までで十分です。</p>
+    </div>
+  </li>
+  <li class="step">
+    <div class="time"><strong>9</strong>9:20〜10:00</div>
+    <div>
+      <h3>収勢<span class="yomi">しゅうせい</span></h3>
+      <p class="plain">腕を上げ、押し下ろして締める</p>
+      <p class="for">呼吸・整える</p>
+      <p class="yoho"><span class="tag">用法</span>型の締めくくり。高ぶった気持ちと呼吸を、静かに元へ収めます。</p>
+      <canvas class="fig" data-ex="close" role="img" aria-label="吸いながら両腕を肩の高さへ上げ、吐きながら手のひらで押し下ろす"></canvas>
+      <p>足を肩幅にして立つ。吸いながら両腕を肩の高さまで浮かせ、吐きながら手のひらで空気を押し下ろす。下ろすときに骨盤底を引き上げる。</p>
+      <p><span class="rep">呼吸3回</span></p>
+    </div>
+  </li>
+</ol>
+
+<h2>気をつけること</h2>
+<ul class="caution">
+  <li><strong>息を止めない。</strong>こらえる型（站樁・金鶏独立・単鞭）では特に。息を止めて力むと血圧が上がりやすくなります。</li>
+  <li><strong>膝</strong>はつま先と同じ向きに。つま先より前に出さない。痛みが出たら腰を浅くする。</li>
+  <li>片脚の型（4・5）は、<strong>椅子や壁のそば</strong>で行う。</li>
+  <li>筋力をつける目的なら、毎日でなく<strong>1日おき</strong>でも十分です。脚に張りが残る日は、朝の10分体操に戻しましょう。</li>
+  <li>持病や手術歴、強い痛みがある場合は、始める前にかかりつけ医に相談を。</li>
+</ul>
+
+<footer>型の名前は楊式太極拳の二十四式から借りています。図の動きは形の目安です。実際はもっとゆっくりで構いません。</footer>
+</div>
+
+<script>
+(function(){
+// 段の切り替え（ブラウザに覚えさせるのは、この人の選んだ段だけ）
+const notes={1:'初段：腰は浅め、回数も少なめ。まずは型の形を覚える段階です。',2:'二段：初段を2週間続けて楽になったら。回数とこらえる時間を増やします。',3:'三段：さらに2週間続けたら。腰を一段低くし、止める時間を長くします。全体で12分ほどになります。'};
+const btns=[...document.querySelectorAll('.levels button')];
+function setLv(lv){btns.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.lv===String(lv))));
+ document.querySelectorAll('.rep[data-l1]').forEach(r=>{r.textContent=r.dataset['l'+lv]});
+ document.getElementById('levelnote').textContent=notes[lv];
+ try{localStorage.setItem('bu-level',String(lv))}catch(e){}}
+btns.forEach(b=>b.addEventListener('click',()=>setLv(b.dataset.lv)));
+let saved=null;try{saved=localStorage.getItem('bu-level')}catch(e){}
+if(saved&&notes[saved])setLv(saved);
+})();
+
+(function(){
+const L={torso:40,neck:13,head:9,ua:21,fa:19,th:26,sh:26},TAU=Math.PI*2,R=Math.PI/180,W=160,H=150,FLOOR=137;
+const ease=x=>(1-Math.cos(TAU*x))/2, half=x=>(1-Math.cos(Math.PI*Math.max(0,Math.min(1,x))))/2, lerp=(a,b,t)=>a+(b-a)*t, lp=(a,b,t)=>[lerp(a[0],b[0],t),lerp(a[1],b[1],t)];
+const dir=d=>[Math.sin(d*R),Math.cos(d*R)];
+function ik(h,f,fwd,l1=L.th,l2=L.sh){let dx=f[0]-h[0],dy=f[1]-h[1],d=Math.hypot(dx,dy);const m=l1+l2-0.01;
+ if(d>m){f=[h[0]+dx/d*m,h[1]+dy/d*m];dx=f[0]-h[0];dy=f[1]-h[1];d=m}
+ const a=(l1*l1-l2*l2+d*d)/(2*d),hh=Math.sqrt(Math.max(0,l1*l1-a*a));let c=[-dy/d,dx/d];
+ if(c[0]*fwd<0||(Math.abs(c[0])<1e-6&&c[1]>0))c=[-c[0],-c[1]];
+ return {k:[h[0]+dx/d*a+c[0]*hh,h[1]+dy/d*a+c[1]*hh],f};}
+const breath=ph=>ph<.5?0:Math.sin(Math.PI*(ph-.5)*2);
+const EX={
+ zhan:{period:8,still:.75,pose(ph){const d=breath(ph);
+  return {view:'front',hip:[80,96+2*d],torso:0,neck:0,arms:[{a:-30,e:110},{a:30,e:-110}],feet:[[60,135],[100,135]],dot:2.5+3.5*d,label:ph<.5?'吸う':'吐いて根を張る'}}},
+ zhan_s:{period:8,still:.75,pose(ph){const d=breath(ph);
+  return {view:'side',hip:[72,97+2*d],torso:4,neck:0,arms:[{a:45,e:55},{a:45,e:55}],feet:[[82,135],[79,135]],dot:2.5+3.5*d,label:ph<.5?'吸う':'吐いて根を張る'}}},
+ punch:{period:5,still:.5,pose(ph){const p=ease(ph);
+  return {view:'side',hip:[lerp(72,84,p),lerp(94,96,p)],torso:4*p,neck:0,arms:[{a:lerp(-25,86,p),e:lerp(115,2,p)},{a:lerp(70,30,p),e:lerp(45,75,p)}],feet:[[100,135],[50,135]],label:ph<.5?'吐いて突く':'吸って戻す'}}},
+ brush:{period:5,still:.5,pose(ph){const p=ease(ph);
+  return {view:'side',hip:[lerp(72,84,p),lerp(94,96,p)],torso:3*p,neck:0,arms:[{a:lerp(30,84,p),e:lerp(120,8,p)},{a:lerp(80,18,p),e:lerp(40,8,p)}],feet:[[100,135],[50,135]],label:ph<.5?'払って押す':'吸って戻す'}}},
+ rooster:{period:7,still:.45,pose(ph){const u=ph<.3?half(ph/.3):ph<.6?1:ph<.85?1-half((ph-.6)/.25):0;
+  return {view:'front',hip:[80,84],torso:0,neck:0,arms:[{a:-lerp(8,25,u),e:lerp(0,75,u)},{a:lerp(8,170,u),e:lerp(0,12,u)}],knees:[[73,110],lp([87,110],[90,89],u)],feet:[[73,135],lp([87,135],[91,112],u)],label:u>.98?'こらえる':''}}},
+ rooster_s:{period:7,still:.45,pose(ph){const u=ph<.3?half(ph/.3):ph<.6?1:ph<.85?1-half((ph-.6)/.25):0;
+  return {view:'side',hip:[74,84],torso:0,neck:0,arms:[{a:lerp(8,165,u),e:lerp(0,15,u)},{a:lerp(8,-5,u),e:lerp(0,75,u)}],feet:[lp([77,135],[96,112],u),[75,135]],label:u>.98?'こらえる':''}}},
+ kick:{period:7,still:.55,pose(ph){const rest=[78,135],ch=[96,108],k=[116,111];let f,lab,g;
+  if(ph<.25){g=half(ph/.25);f=lp(rest,ch,g);lab='膝を上げる'}
+  else if(ph<.45){g=1;f=lp(ch,k,half((ph-.25)/.2));lab='かかとで押し出す'}
+  else if(ph<.65){g=1;f=k;lab='止める'}
+  else if(ph<.85){g=1;f=lp(k,ch,half((ph-.65)/.2));lab='引き戻す'}
+  else{g=1-half((ph-.85)/.15);f=lp(ch,rest,1-g);lab='下ろす'}
+  return {view:'side',hip:[72,84],torso:-3*g,neck:3*g,arms:[{a:lerp(15,70,g),e:lerp(20,45,g)},{a:lerp(15,-35,g),e:lerp(20,10,g)}],feet:[f,[73,135]],label:lab}}},
+ whip:{period:8,still:.75,pose(ph){const d=breath(ph);
+  return {view:'front',hip:[80,97+2*d],torso:0,neck:0,arms:[{a:-96,e:-14},{a:96,e:24}],feet:[[54,135],[106,135]],dot:2.5+3.5*d,label:ph<.5?'吸う':'吐いてこらえる'}}},
+ cloud:{period:7,still:.1,pose(ph){const K=[[62,96,79],[62,112,87],[78,112,95],[62,112,87],[62,96,79]];
+  const i=Math.min(3,Math.floor(ph*4)),q=half(ph*4-i),A=K[i],B=K[i+1],lift=6*Math.sin(Math.PI*q);
+  const lx=lerp(A[0],B[0],q),rx=lerp(A[1],B[1],q),ly=A[0]!==B[0]?135-lift:135,ry=A[1]!==B[1]?135-lift:135;
+  const s=Math.sin(TAU*ph),l0=(1+s)/2,l1=1-l0,Aa=l=>30+100*l,F=l=>30+140*l;
+  return {view:'front',hip:[lerp(A[2],B[2],q),95],torso:0,neck:-5*s,arms:[{a:-Aa(l0),e:-(F(l0)-Aa(l0))},{a:Aa(l1),e:F(l1)-Aa(l1)}],feet:[[lx,ly],[rx,ry]],label:'低いまま横へ'}}},
+ snake:{period:8,still:.25,pose(ph){const s=Math.sin(TAU*ph),m=Math.abs(s),L0=s>0;
+  const reach=[lerp(40,58,m),0],hook=[lerp(40,120,m),lerp(0,20,m)];
+  const arms=L0?[{a:-hook[0],e:-hook[1]},{a:reach[0],e:reach[1]}]:[{a:-reach[0],e:-reach[1]},{a:hook[0],e:hook[1]}];
+  return {view:'front',hip:[80-12*s,93+7*m],torso:0,neck:0,arms,feet:[[52,135],[108,135]],label:m>.6?'浅く沈む':'中央へ'}}},
+ close:{period:8,still:.4,pose(ph){const v=ph<.5?half(ph*2):1-half((ph-.5)*2);
+  return {view:'side',hip:[74,lerp(88,85,v)],torso:0,neck:0,arms:[{a:lerp(8,84,v),e:lerp(0,14,v)},{a:lerp(8,84,v),e:lerp(0,14,v)}],feet:[[77,135],[74,135]],dot:ph>.5?2.5+3.5*Math.sin(Math.PI*(ph-.5)*2):0,label:ph<.5?'吸って浮かせる':'吐いて押し下ろす'}}}
+};
+function line(c,a,b){c.beginPath();c.moveTo(a[0],a[1]);c.lineTo(b[0],b[1]);c.stroke()}
+function draw(c,P,col){
+ c.lineCap='round';c.lineJoin='round';
+ c.strokeStyle=col.line;c.lineWidth=2;line(c,[8,FLOOR],[152,FLOOR]);
+ const hip=P.hip,t=P.torso*R,tl=L.torso*(P.tl??1),top=[hip[0]+tl*Math.sin(t),hip[1]-tl*Math.cos(t)];
+ const na=(P.torso+P.neck)*R,head=[top[0]+L.neck*Math.sin(na),top[1]-L.neck*Math.cos(na)];
+ const front=P.view==='front';
+ const sh=front?[[top[0]-11,top[1]+4],[top[0]+11,top[1]+4]]:[top,top];
+ const hp=front?[[hip[0]-6,hip[1]],[hip[0]+6,hip[1]]]:[hip,hip];
+ c.strokeStyle=col.ink;c.lineWidth=4.5;
+ const legs=[0,1].map(i=>P.knees?{k:P.knees[i],f:P.feet[i]}:ik(hp[i],P.feet[i],front?(i?1:-1):1));
+ const arm=i=>{const A=P.arms[i],e=[sh[i][0]+L.ua*dir(A.a)[0],sh[i][1]+L.ua*dir(A.a)[1]],d=dir(A.a+A.e);line(c,sh[i],e);line(c,e,[e[0]+L.fa*d[0],e[1]+L.fa*d[1]])};
+ const leg=i=>{const s=legs[i];line(c,hp[i],s.k);line(c,s.k,s.f);
+  if(front){line(c,s.f,[s.f[0]+(i?5:-5),s.f[1]])}else{const dx=s.f[0]-s.k[0],dy=s.f[1]-s.k[1],d=Math.hypot(dx,dy);line(c,s.f,[s.f[0]+dy/d*7,s.f[1]-dx/d*7])}};
+ if(!front){c.globalAlpha=.35;leg(1);arm(1);c.globalAlpha=1}
+ if(front){line(c,hp[0],hp[1]);line(c,sh[0],sh[1])}
+ line(c,hip,top);line(c,top,head);
+ c.beginPath();c.arc(head[0],head[1],L.head,0,TAU);c.fillStyle=col.bg;c.fill();c.stroke();
+ if(front){leg(0);leg(1);arm(0);arm(1)}else{leg(0);arm(0)}
+ if(P.dot){c.fillStyle=col.accent;c.globalAlpha=.85;c.beginPath();c.arc(hip[0],hip[1]+6,P.dot,0,TAU);c.fill();c.globalAlpha=1}
+ if(P.label){c.fillStyle=col.accent;c.font='700 12px "Zen Kaku Gothic New",sans-serif';c.fillText(P.label,8,18)}
+}
+const figs=[...document.querySelectorAll('canvas.fig')];
+function size(cv){const w=cv.getBoundingClientRect().width||200,d=window.devicePixelRatio||1;cv.width=Math.round(w*d);cv.height=Math.round(w*H/W*d)}
+figs.forEach(size);addEventListener('resize',()=>figs.forEach(size));
+const reduce=matchMedia('(prefers-reduced-motion: reduce)');
+function frame(ms){const s=getComputedStyle(document.documentElement),g=k=>s.getPropertyValue(k).trim();
+ const col={ink:g('--ink'),line:g('--line'),accent:g('--accent'),bg:g('--surface')};
+ figs.forEach(cv=>{const ex=EX[cv.dataset.ex];if(!ex)return;const c=cv.getContext('2d');c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,cv.width,cv.height);
+  const k=cv.width/W;c.setTransform(k,0,0,k,0,0);const ph=reduce.matches?ex.still:(ms/1000/ex.period)%1;draw(c,ex.pose(ph),col)});
+ requestAnimationFrame(frame)}
+requestAnimationFrame(frame);
+})();
+</script>
+
+<script>if("serviceWorker" in navigator){addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}</script>
+</body>
+</html>
