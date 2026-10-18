@@ -521,8 +521,9 @@
 
   // ================= 入力 =================
   cvL.addEventListener('pointerdown', e => {
+    if (e.isTrusted && e.pointerType === 'touch') return;   // 指は下の touch 受け口から来る
     if (mode !== 'draw') { idle = 0; return; }
-    cvL.setPointerCapture(e.pointerId);
+    try { cvL.setPointerCapture(e.pointerId); } catch (_) {}
     const real = e.timeStamp / 1000;
     current = { pts: [], active: true, baked: false, id: e.pointerId, t0: t, lastReal: real,
                 gap: lastEndReal == null ? 0 : Math.max(0, real - lastEndReal) };
@@ -532,11 +533,13 @@
     idle = 99;
   });
   cvL.addEventListener('pointermove', e => {
+    if (e.isTrusted && e.pointerType === 'touch') return;   // 指は下の touch 受け口から来る
     if (!current || e.pointerId !== current.id) return;
     const list = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
     for (const ev of (list.length ? list : [e])) addPoint(ev);
   });
   const end = e => {
+    if (e.isTrusted && e.pointerType === 'touch') return;   // 指は下の touch 受け口から来る
     if (!current || e.pointerId !== current.id) return;
     if (current.pts.length < 3) {
       strokes.splice(strokes.indexOf(current), 1);
@@ -551,6 +554,19 @@
   };
   cvL.addEventListener('pointerup', end);
   cvL.addEventListener('pointercancel', end);
+
+  // 指（タッチ）は touch イベントで直接受け、ペンやマウスと同じ処理へ渡す。
+  // タッチ画面のパソコンなど、外側の画面が指の動きをスクロールとして先に取ってしまう環境でも描けるように
+  function relayTouch(type, list) {
+    for (const tc of list) cvL.dispatchEvent(new PointerEvent(type, {
+      pointerId: 1000 + tc.identifier, clientX: tc.clientX, clientY: tc.clientY,
+      pressure: tc.force > 0 ? tc.force : 0, pointerType: 'touch', isPrimary: true, bubbles: true
+    }));
+  }
+  cvL.addEventListener('touchstart', ev => { ev.preventDefault(); relayTouch('pointerdown', ev.changedTouches); }, { passive: false });
+  cvL.addEventListener('touchmove', ev => { ev.preventDefault(); relayTouch('pointermove', ev.changedTouches); }, { passive: false });
+  cvL.addEventListener('touchend', ev => { ev.preventDefault(); relayTouch('pointerup', ev.changedTouches); }, { passive: false });
+  cvL.addEventListener('touchcancel', ev => relayTouch('pointercancel', ev.changedTouches));
   addEventListener('pointermove', () => { if (!current) idle = 0; }, { passive: true });
 
   // ================= ループ =================
